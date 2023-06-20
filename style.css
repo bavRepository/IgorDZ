@@ -18,14 +18,16 @@
     border-radius: 10%;
     cursor: pointer;
     font-size: 28px;
+    color:#ADFF2F;
+    border: 1px solid blue;
 }
 
 .addNotice {
     display: flex;
     justify-content: center;
     align-items: center;
-    right: 0;
-    top: 0;
+    right: 20px;
+    top: 10%;
     width: 200px;
     height: 200px;
     border-radius: 100%;
@@ -34,4 +36,28 @@
     position: fixed;
     cursor: pointer;
     color: #ADFF2F;
+}
+
+.removeNotice {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    bottom: 10%;
+    right: 20px;
+    width: 200px;
+    height: 200px;
+    border-radius: 100%;
+    font-size: 62px;
+    background: #191970;
+    position: fixed;
+    cursor: pointer;
+    color: #ADFF2F;
+}
+
+.show {
+    display: block;
+}
+
+.hide {
+    display: none;
 }
