@@ -1,0 +1,37 @@
+* {
+    box-sizing: border-box;
+}
+
+.notice {
+    width: 220px;
+    height: 120px;
+    padding: 10px;
+    background-color: tomato;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateY(-50%) translateX(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+    border-radius: 10%;
+    cursor: pointer;
+    font-size: 28px;
+}
+
+.addNotice {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    right: 0;
+    top: 0;
+    width: 200px;
+    height: 200px;
+    border-radius: 100%;
+    font-size: 62px;
+    background: #191970;
+    position: fixed;
+    cursor: pointer;
+    color: #ADFF2F;
+}
