@@ -18,11 +18,10 @@ if (localStorage.length > 0) {
 		elemCoordY = localStorage.getItem(`elemCoord${i + 1}`).split(" ")[1];
 
 		noticeValue = localStorage.getItem(`elemCoord${i + 1}`).split(" ").slice(2).join("");
-		console.log(noticeValue);
 		createNotice();
 	}
-} else {
-	noticeValue = "ВЖУХх";
+} else { 
+
 	elemCoordX = "50%";
 	elemCoordY = "50%";
 }
@@ -89,7 +88,7 @@ function setUpNoticeSettings() {
 function createNotice() {
 	counter++;
 	const notice = document.createElement('textarea');
-	notice.value = noticeValue;
+	notice.value = noticeValue ?? "";
 	notice.setAttribute('data-index', counter);
 	notice.classList.add('notice');
 
