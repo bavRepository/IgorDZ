@@ -4,7 +4,7 @@
 const delNotice = document.querySelector('.removeNotice'),
 	addNotice = document.querySelector('.addNotice'),
 	noticeParent = document.querySelector('.noticeWrapper');
-	
+
 let elemCoordX;
 let elemCoordY;
 let counter = 0;
@@ -16,12 +16,13 @@ if (localStorage.length > 0) {
 	for (let i = 0; i < localStorage.length; i++) {
 		elemCoordX = localStorage.getItem(`elemCoord${i + 1}`).split(" ")[0];
 		elemCoordY = localStorage.getItem(`elemCoord${i + 1}`).split(" ")[1];
-		
-		noticeValue = localStorage.getItem(`elemCoord${i + 1}`).split(" ").slice(2)[0];
+
+		noticeValue = localStorage.getItem(`elemCoord${i + 1}`).split(" ").slice(2).join("");
 		console.log(noticeValue);
 		createNotice();
 	}
 } else {
+	noticeValue = "ВЖУХх";
 	elemCoordX = "50%";
 	elemCoordY = "50%";
 }
@@ -30,7 +31,7 @@ if (localStorage.length > 0) {
 
 function deleteItemListener() {
 	delNotice.addEventListener('click', () => {
-				noticeParent.removeChild(noticeParent.lastElementChild);
+		noticeParent.removeChild(noticeParent.lastElementChild);
 		if (counter >= 1) {
 			counter--;
 		}
@@ -39,11 +40,16 @@ function deleteItemListener() {
 
 function setUpNoticeSettings() {
 	notices = document.querySelectorAll('.notice');
-	
+
 	notices.forEach(elem => {
 
+		elem.addEventListener('change', () => {
+			localStorage.setItem(`elemCoord${elem.getAttribute('data-index')}`, `${elem.style.left} ${elem.style.top} ${elem.value}`);
+		});
 
-		
+		localStorage.setItem(`elemCoord${elem.getAttribute('data-index')}`, `${elem.style.left} ${elem.style.top} ${elem.value}`);
+
+
 
 		elem.addEventListener('mousedown', (e) => {
 			const target = e.target;
@@ -58,17 +64,19 @@ function setUpNoticeSettings() {
 
 			target.style.zIndex = maxZInd + 1;
 			target.style.border = '2px solid black';
-			function elemMooving(pageX, pageY) {
-				target.style.top = `${pageY}px`;
-				target.style.left = `${pageX}px`;
-			}
+
 			function withMouseMoove(e) {
-				elemMooving(e.pageX, e.pageY);
+
+				if (e.pageX >= 0 && e.pageY >= 0) {
+					console.log(Number((e.target.style.height).replace(/\D/g, "")));
+					target.style.top = `${e.pageY}px`;
+					target.style.left = `${e.pageX}px`;
+				}
 			}
 			document.addEventListener('mousemove', withMouseMoove);
 			elem.addEventListener("mouseup", function () {
 				maxZInd = 0;
-				localStorage.setItem(`elemCoord${elem.getAttribute('data-index')}`, `${target.style.left} ${target.style.top} ${target.value}`);
+				localStorage.setItem(`elemCoord${elem.getAttribute('data-index')}`, `${elem.style.left} ${elem.style.top} ${elem.value}`);
 				elem.style.border = '1px solid blue';
 				document.removeEventListener('mousemove', withMouseMoove);
 
@@ -80,8 +88,8 @@ function setUpNoticeSettings() {
 
 function createNotice() {
 	counter++;
-	const notice = document.createElement('input');
-	notice.value = noticeValue ?? "ВЖУХ—ВЖУХ";
+	const notice = document.createElement('textarea');
+	notice.value = noticeValue;
 	notice.setAttribute('data-index', counter);
 	notice.classList.add('notice');
 
@@ -90,7 +98,6 @@ function createNotice() {
 	notice.style.left = elemCoordX;
 	delNotice.classList.remove('hide');
 	noticeParent.append(notice);
-	// document.body.append(notice);
 	setUpNoticeSettings();
 }
 

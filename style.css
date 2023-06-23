@@ -2,13 +2,23 @@
     box-sizing: border-box;
 }
 
+html, body {
+    overflow: hidden;
+  }
+  
+  body {
+    overflow-y: scroll;
+    width: calc(100% + 20px);
+  }
+
 .container {
     height: 100vh;
 }
 
 .notice {
-    width: 220px;
-    height: 120px;
+    resize: none;
+    line-height: 1.2;
+    min-height: calc(1.2em * 4);
     padding: 10px;
     background-color: tomato;
     position: absolute;
@@ -22,6 +32,7 @@
     font-size: 28px;
     color:#ADFF2F;
     border: 1px solid blue;
+    
 }
 
 .addNotice {
