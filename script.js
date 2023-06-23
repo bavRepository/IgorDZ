@@ -28,6 +28,7 @@ if (localStorage.length > 0) {
 }
 
 function setUpNoticeSettings() {
+
 	const noticesWrapper = document.querySelectorAll('.noticeWrapper');
 	noticesWrapper.forEach(elem => {
 		const notice = elem.querySelector('.notice');
@@ -38,13 +39,13 @@ function setUpNoticeSettings() {
 
 			if (target.matches('button')) {
 				localStorage.removeItem(`elemCoord${elem.getAttribute('data-index')}`);
-		
-					e.preventDefault();
-					elem.remove();
 
-					if (createdNoticeCounter >= 1) {
-						createdNoticeCounter--;
-					}
+				e.preventDefault();
+				elem.remove();
+
+				if (createdNoticeCounter >= 1) {
+					createdNoticeCounter--;
+				}
 			}
 
 			if (target.matches('.notice')) {
@@ -132,6 +133,14 @@ function addNewNotice() {
 	noticeParant.append(notice);
 	noticeParant.append(delButton);
 	document.body.append(noticeParant);
+	const noticesWrapper = document.querySelectorAll('.noticeWrapper');
+		noticesWrapper.forEach(elem => {
+			if (maxZInd < Number(elem.style.zIndex)) {
+				maxZInd = Number(elem.style.zIndex);
+			}
+		});
+
+		noticeParant.style.zIndex = maxZInd + 1;
 	setUpNoticeSettings();
 }
 
@@ -140,6 +149,7 @@ function createActionAddNotice() {
 		noticeValue = undefined;
 		elemCoordX = "50%";
 		elemCoordY = "50%";
+		
 		addNewNotice();
 	});
 }
