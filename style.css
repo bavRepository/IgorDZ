@@ -15,18 +15,28 @@ html, body {
     height: 100vh;
 }
 
+.noticeWrapper {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transform: translateY(-50%) translateX(-50%);
+    /* z-index: 1; */
+
+
+}
+
+
 .notice {
     resize: none;
     line-height: 1.2;
     min-height: calc(1.2em * 4);
     padding: 10px;
     background-color: tomato;
-    position: absolute;
-    transform: translateY(-50%) translateX(-50%);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1;
     border-radius: 10%;
     cursor: pointer;
     font-size: 28px;
