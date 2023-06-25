@@ -2,7 +2,7 @@
 
 const addNotice = document.querySelector('.addNotice'),
 	  noticeClickedStyleBorder = '3px solid black',
-	  noticeUNClickedStyleBorder = '1px solid black';
+	  noticeUnClickedStyleBorder = '1px solid black';
 
 let elemCoordX = '40%';
 let elemCoordY = '40%';
@@ -84,7 +84,7 @@ function setUpNoticeSettings() {
 			elem.style.zIndex = 1;
 			// unset Bold border from all elements
 			notices.forEach(elem => {
-				elem.style.border = noticeUNClickedStyleBorder;
+				elem.style.border = noticeUnClickedStyleBorder;
 				
 			});
 			currentNotice.style.border = noticeClickedStyleBorder;
