@@ -1,109 +1,138 @@
 'use strict'
 
 const addNotice = document.querySelector('.addNotice'),
-	noticeParent = document.querySelector('.noticeWrapper');
+	  noticeClickedStyleBorder = '3px solid black',
+	  noticeUNClickedStyleBorder = '1px solid black';
 
-let notice;
-let delButton;
-let parentNotice;
-let elemCoordX;
-let elemCoordY;
+let elemCoordX = '40%';
+let elemCoordY = '40%';
+let zIndex;
 let createdNoticeCounter = 0;
-let maxZInd = 0;
 let noticeValue;
-let notices;
+let shiftX;
+let shiftY;
 
-if (localStorage.length > 0) {
+function getLocalNoticeInfo(data, i) {
+	let storageValue;
+	const localItems = localStorage.getItem(`elemCoord${i + 1}`).split(" ");
 
-	for (let i = 0; i < localStorage.length; i++) {
-
-		elemCoordX = localStorage.getItem(`elemCoord${i + 1}`).split(" ")[0];
-		elemCoordY = localStorage.getItem(`elemCoord${i + 1}`).split(" ")[1];
-		noticeValue = localStorage.getItem(`elemCoord${i + 1}`).split(" ").slice(2).join(" ");
-		addNewNotice();
+	switch (data) {
+		case 'x': storageValue = localItems[0];
+			break;
+		case 'y': storageValue = localItems[1];
+			break;
+		case 'z': storageValue = localItems[2];
+			break;
+		case 'value': storageValue = localItems.slice(3).join(" ");
+			break;
+		default: console.error("Вы запросили несуществующую инструкцию у LocalStorage. Таких данных нет");
 	}
-} else {
-	elemCoordX = "50%";
-	elemCoordY = "50%";
+
+	return storageValue;
+}
+
+function startApplicationWork() {
+	if (localStorage.length > 0) {
+		for (let i = 0; i < localStorage.length; i++) {
+
+			elemCoordX = getLocalNoticeInfo('x', i);
+			elemCoordY = getLocalNoticeInfo('y', i);
+			zIndex = getLocalNoticeInfo('z', i);
+			noticeValue = getLocalNoticeInfo('value', i);
+			addNewNotice();
+		}
+	}
+}
+
+function clearZIndex(wrapArr, notices) {
+	wrapArr.forEach((wrap, i) => {
+		wrap.style.zIndex = 'auto';
+		setDataToLocal(wrap, notices[i]);
+	});
+}
+
+function setDataToLocal(wrap, notice) {
+	localStorage.setItem(`elemCoord${wrap.getAttribute('data-index')}`, `${wrap.style.left} ${wrap.style.top} ${wrap.style.zIndex} ${notice?.value ?? ""}`);
+}
+
+function delDataFroLocal(elem) {
+	localStorage.removeItem(`elemCoord${elem.getAttribute('data-index')}`);
 }
 
 function setUpNoticeSettings() {
 
-	const noticesWrapper = document.querySelectorAll('.noticeWrapper');
-	noticesWrapper.forEach(elem => {
-		const notice = elem.querySelector('.notice');
+	const delButton = document.querySelector('button');
+	const notices = document.querySelectorAll('.notice');
+	const wrappers = document.querySelectorAll('.noticeWrapper');
 
-		localStorage.setItem(`elemCoord${elem.getAttribute('data-index')}`, `${elem.style.left} ${elem.style.top} ${notice.value}`);
-		elem.addEventListener('click', (e) => {
-			const target = e.target;
+	wrappers.forEach((elem, i) => {
 
-			if (target.matches('button')) {
-				localStorage.removeItem(`elemCoord${elem.getAttribute('data-index')}`);
+		let currentNotice = notices[i];
+		setDataToLocal(elem, currentNotice);
 
-				e.preventDefault();
-				elem.remove();
+		// add Bold border if element is last cicked
+		if (Number(elem.style.zIndex) === 1) {
+			currentNotice.style.border = noticeClickedStyleBorder;
+		}
+		
+		elem.addEventListener('mousedown', (e) => {
+			shiftX = e.clientX - elem.getBoundingClientRect().left;
+			shiftY = e.clientY - elem.getBoundingClientRect().top;
 
-				if (createdNoticeCounter >= 1) {
-					createdNoticeCounter--;
-				}
-			}
-
-			if (target.matches('.notice')) {
-				target.addEventListener('input', () => {
-					localStorage.setItem(`elemCoord${elem.getAttribute('data-index')}`, `${elem.style.left} ${elem.style.top} ${target.value}`);
-				});
-			}
-
-			if (target.matches('.notice')) {
-				target.addEventListener('change', () => {
-					localStorage.setItem(`elemCoord${elem.getAttribute('data-index')}`, `${elem.style.left} ${elem.style.top} ${target.value}`);
-				});
-			}
-
-
-		});
-		elem.addEventListener('mousedown', () => {
-			noticesWrapper.forEach(elem => {
-				if (maxZInd < Number(elem.style.zIndex)) {
-					maxZInd = Number(elem.style.zIndex);
-				}
+			// unset zIndex from all wrapper elements 
+			clearZIndex(wrappers, notices);
+			elem.style.zIndex = 1;
+			// unset Bold border from all elements
+			notices.forEach(elem => {
+				elem.style.border = noticeUNClickedStyleBorder;
+				
 			});
-
-			elem.style.zIndex = maxZInd + 1;
-			notice.style.border = '2px solid black';
-
+			currentNotice.style.border = noticeClickedStyleBorder;
+			
 			function withMouseMoove(e) {
-
-				if (e.pageX >= 0 && e.pageY >= 0) {
-					elem.style.top = `${e.pageY}px`;
-					elem.style.left = `${e.pageX}px`;
-				}
+				elem.style.left = e.pageX - shiftX + 'px';
+				elem.style.top = e.pageY - shiftY + 'px';
 			}
 			document.addEventListener('mousemove', withMouseMoove);
 
 			elem.addEventListener("mouseup", function () {
-				maxZInd = 0;
-				localStorage.setItem(`elemCoord${elem.getAttribute('data-index')}`, `${elem.style.left} ${elem.style.top} ${notice.value}`);
-				notice.style.border = '1px solid blue';
-				document.removeEventListener('mousemove', withMouseMoove);
+				setDataToLocal(elem, currentNotice);
 
+
+				document.removeEventListener('mousemove', withMouseMoove);
 			});
 		});
+		elem.addEventListener('input', () => {
+			setDataToLocal(elem, currentNotice);
+		});
+	});
 
-
+	delButton.addEventListener('click', (e) => {
+		delDataFroLocal(e.target);
+		e.target.parentElement.remove();
 	});
 }
 
-function createNoticeParent() {
-	parentNotice = document.createElement('div');
-	parentNotice.classList.add('noticeWrapper');
-	parentNotice.setAttribute('data-index', createdNoticeCounter);
-	return parentNotice;
+function createNoticeWrapper() {
+
+	const noticeWrapper = document.createElement('div');
+	noticeWrapper.style.cssText = `
+		z-index: ${zIndex ?? 0};
+		top: ${elemCoordY};
+		left: ${elemCoordX};
+	`;
+	noticeWrapper.setAttribute('data-index', createdNoticeCounter);
+	noticeWrapper.classList.add('noticeWrapper');
+	return noticeWrapper;
 }
 
 function createDelButton() {
-	delButton = document.createElement('button');
+	const delButton = document.createElement('button');
 	delButton.style.cssText = `
+		position: absolute;
+		bottom: -25px;
+		left: 50%;
+		transform: translateX(-50%);
 		width: 120px;
 		height: 30px;
 		display: block;
@@ -111,48 +140,35 @@ function createDelButton() {
 	delButton.textContent = 'Удалить';
 	return delButton;
 }
-
 function createElemNotice() {
-	notice = document.createElement('textarea');
+	const notice = document.createElement('textarea');
 	notice.value = noticeValue ?? "";
 	notice.classList.add('notice');
-
 	return notice;
 }
 
 function addNewNotice() {
 	createdNoticeCounter++;
+	const noticeWrapper = createNoticeWrapper(),
+		notice = createElemNotice(),
+		delButton = createDelButton();
 
-	const noticeParant = createNoticeParent();
-	noticeParant.style.top = elemCoordY;
-	noticeParant.style.left = elemCoordX;
-	const delButton = createDelButton();
-	const notice = createElemNotice();
-
-
-	noticeParant.append(notice);
-	noticeParant.append(delButton);
-	document.body.append(noticeParant);
-	const noticesWrapper = document.querySelectorAll('.noticeWrapper');
-		noticesWrapper.forEach(elem => {
-			if (maxZInd < Number(elem.style.zIndex)) {
-				maxZInd = Number(elem.style.zIndex);
-			}
-		});
-
-		noticeParant.style.zIndex = maxZInd + 1;
+	noticeWrapper.append(notice);
+	noticeWrapper.append(delButton);
+	document.body.append(noticeWrapper);
 	setUpNoticeSettings();
 }
 
 function createActionAddNotice() {
 	addNotice.addEventListener('click', () => {
 		noticeValue = undefined;
-		elemCoordX = "50%";
-		elemCoordY = "50%";
-		
+		 elemCoordX = '40%';
+		 elemCoordY = '40%';
 		addNewNotice();
 	});
 }
 
+/////__IMPLEMENTATION__/////
+startApplicationWork();
 createActionAddNotice();
-
+///////////////////////////
