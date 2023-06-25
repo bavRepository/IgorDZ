@@ -12,7 +12,6 @@ let noticeValue;
 let shiftX;
 let shiftY;
 
-
 function setDataToLocal(wrap, notice) {
 
 	const elemsData = {
@@ -29,8 +28,7 @@ function setDataToLocal(wrap, notice) {
 function getLocalNoticeInfo(data, i) {
 	let storageValue;
 	const localItems = JSON.parse(localStorage.getItem(`id${i+1}`));
-	console.log(localItems.value);
-	console.log(localItems);
+
 	switch (data) {
 		case 'x': storageValue = localItems.x;
 			break;
@@ -61,19 +59,19 @@ function startApplicationWork() {
 	}
 }
 
-function clearZIndex(wrapArr, notice) { //notices
+function clearZIndex() {
 	const notices = document.querySelectorAll('.notice');
 	const wrappers = document.querySelectorAll('.noticeWrapper');
 	wrappers.forEach((wrap, i) => {
 		wrap.style.zIndex = 'auto';
-		setDataToLocal(wrap, notices[i]); //notices[i]
+		setDataToLocal(wrap, notices[i]);
 	});
 }
 
 
 
 function delDataFroLocal(elem) {
-	localStorage.removeItem(`elemCoord${elem.getAttribute('data-index')}`);
+	localStorage.removeItem(`id${elem.getAttribute('data-index')}`);
 }
 
 function setUpNoticeSettings() {
