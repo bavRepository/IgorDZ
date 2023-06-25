@@ -61,12 +61,12 @@ function delDataFroLocal(elem) {
 
 function setUpNoticeSettings() {
 
-	const delButton = document.querySelector('button');
+	
 	const notices = document.querySelectorAll('.notice');
 	const wrappers = document.querySelectorAll('.noticeWrapper');
 
 	wrappers.forEach((elem, i) => {
-
+		const delButton = elem.querySelector('button');
 		let currentNotice = notices[i];
 		setDataToLocal(elem, currentNotice);
 
@@ -105,12 +105,13 @@ function setUpNoticeSettings() {
 		elem.addEventListener('input', () => {
 			setDataToLocal(elem, currentNotice);
 		});
+		delButton.addEventListener('click', () => {
+			delDataFroLocal(elem);
+			elem.remove();
+		});
 	});
 
-	delButton.addEventListener('click', (e) => {
-		delDataFroLocal(e.target);
-		e.target.parentElement.remove();
-	});
+
 }
 
 function createNoticeWrapper() {
