@@ -1,8 +1,8 @@
 'use strict'
 
 const addNotice = document.querySelector('.addNotice'),
-	  noticeClickedStyleBorder = '3px solid black',
-	  noticeUnClickedStyleBorder = '1px solid black';
+	noticeClickedStyleBorder = '3px solid black',
+	noticeUnClickedStyleBorder = '1px solid black';
 
 let elemCoordX = '40%';
 let elemCoordY = '40%';
@@ -12,18 +12,35 @@ let noticeValue;
 let shiftX;
 let shiftY;
 
+
+function setDataToLocal(wrap, notice) {
+
+	const elemsData = {
+		id: `id${wrap.getAttribute('data-index')}`,
+		x: `${wrap.style.left}`,
+		y: `${wrap.style.top}`,
+		z: `${wrap.style.zIndex}`,
+		message: `${notice?.value ?? ""}`,
+	};
+
+	localStorage.setItem(`${elemsData.id}`, JSON.stringify(elemsData));
+}
+
 function getLocalNoticeInfo(data, i) {
 	let storageValue;
-	const localItems = localStorage.getItem(`elemCoord${i + 1}`).split(" ");
-
+	const localItems = JSON.parse(localStorage.getItem(`id${i+1}`));
+	console.log(localItems.value);
+	console.log(localItems);
 	switch (data) {
-		case 'x': storageValue = localItems[0];
+		case 'x': storageValue = localItems.x;
 			break;
-		case 'y': storageValue = localItems[1];
+		case 'y': storageValue = localItems.y;
 			break;
-		case 'z': storageValue = localItems[2];
+		case 'id': storageValue = localItems.id;
 			break;
-		case 'value': storageValue = localItems.slice(3).join(" ");
+		case 'z': storageValue = localItems.z;
+			break;
+		case 'message': storageValue = localItems.message;
 			break;
 		default: console.error("Вы запросили несуществующую инструкцию у LocalStorage. Таких данных нет");
 	}
@@ -38,22 +55,22 @@ function startApplicationWork() {
 			elemCoordX = getLocalNoticeInfo('x', i);
 			elemCoordY = getLocalNoticeInfo('y', i);
 			zIndex = getLocalNoticeInfo('z', i);
-			noticeValue = getLocalNoticeInfo('value', i);
+			noticeValue = getLocalNoticeInfo('message', i);
 			addNewNotice();
 		}
 	}
 }
 
-function clearZIndex(wrapArr, notices) {
-	wrapArr.forEach((wrap, i) => {
+function clearZIndex(wrapArr, notice) { //notices
+	const notices = document.querySelectorAll('.notice');
+	const wrappers = document.querySelectorAll('.noticeWrapper');
+	wrappers.forEach((wrap, i) => {
 		wrap.style.zIndex = 'auto';
-		setDataToLocal(wrap, notices[i]);
+		setDataToLocal(wrap, notices[i]); //notices[i]
 	});
 }
 
-function setDataToLocal(wrap, notice) {
-	localStorage.setItem(`elemCoord${wrap.getAttribute('data-index')}`, `${wrap.style.left} ${wrap.style.top} ${wrap.style.zIndex} ${notice?.value ?? ""}`);
-}
+
 
 function delDataFroLocal(elem) {
 	localStorage.removeItem(`elemCoord${elem.getAttribute('data-index')}`);
@@ -61,34 +78,36 @@ function delDataFroLocal(elem) {
 
 function setUpNoticeSettings() {
 
-	
+
 	const notices = document.querySelectorAll('.notice');
 	const wrappers = document.querySelectorAll('.noticeWrapper');
 
-	wrappers.forEach((elem, i) => {
+	wrappers.forEach((elem) => {
+		const notice = elem.querySelector('.notice');
 		const delButton = elem.querySelector('button');
-		let currentNotice = notices[i];
-		setDataToLocal(elem, currentNotice);
+
+		setDataToLocal(elem, notice);
 
 		// add Bold border if element is last cicked
 		if (Number(elem.style.zIndex) === 1) {
-			currentNotice.style.border = noticeClickedStyleBorder;
+			notice.style.border = noticeClickedStyleBorder;
 		}
-		
+
 		elem.addEventListener('mousedown', (e) => {
+
 			shiftX = e.clientX - elem.getBoundingClientRect().left;
 			shiftY = e.clientY - elem.getBoundingClientRect().top;
 
 			// unset zIndex from all wrapper elements 
-			clearZIndex(wrappers, notices);
+			clearZIndex();
 			elem.style.zIndex = 1;
 			// unset Bold border from all elements
+
 			notices.forEach(elem => {
 				elem.style.border = noticeUnClickedStyleBorder;
-				
 			});
-			currentNotice.style.border = noticeClickedStyleBorder;
-			
+			notice.style.border = noticeClickedStyleBorder;
+
 			function withMouseMoove(e) {
 				elem.style.left = e.pageX - shiftX + 'px';
 				elem.style.top = e.pageY - shiftY + 'px';
@@ -96,14 +115,13 @@ function setUpNoticeSettings() {
 			document.addEventListener('mousemove', withMouseMoove);
 
 			elem.addEventListener("mouseup", function () {
-				setDataToLocal(elem, currentNotice);
-
+				setDataToLocal(elem, notice);
 
 				document.removeEventListener('mousemove', withMouseMoove);
 			});
 		});
 		elem.addEventListener('input', () => {
-			setDataToLocal(elem, currentNotice);
+			setDataToLocal(elem, notice);
 		});
 		delButton.addEventListener('click', () => {
 			delDataFroLocal(elem);
@@ -163,8 +181,8 @@ function addNewNotice() {
 function createActionAddNotice() {
 	addNotice.addEventListener('click', () => {
 		noticeValue = undefined;
-		 elemCoordX = '40%';
-		 elemCoordY = '40%';
+		elemCoordX = '40%';
+		elemCoordY = '40%';
 		addNewNotice();
 	});
 }
