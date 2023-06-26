@@ -12,10 +12,28 @@ let noticeValue;
 let shiftX;
 let shiftY;
 
+function startApplicationWork() {
 
+
+
+
+	if (localStorage.length > 0) {
+
+		const localItems = JSON.parse(localStorage.getItem('notice'));
+
+		console.log(localItems);
+		for (let i = 0; i < localStorage.length; i++) {
+
+			elemCoordX = notice.read('x', i);
+			elemCoordY = getLocalNoticeInfo('y', i);
+			zIndex = getLocalNoticeInfo('z', i);
+			noticeValue = getLocalNoticeInfo('message', i);
+			addNewNotice();
+		}
+	}
+}
 
 class NoticeService {
-
 	#localStorageKey = 'notice';
 
 	delete(noticeId) {
@@ -23,12 +41,34 @@ class NoticeService {
 	}
 
 	create(noticeObj) {
-		localStorage.setItem(this.#localStorageKey, JSON.stringify(noticeObj));
+		localStorage.setItem(this.#localStorageKey, (localStorage.getItem(this.#localStorageKey) ?? '') + JSON.stringify([{...noticeObj, id: localStorage.length + 1}]));
 	}
 
 	read(noticeId) {
-		// let storageValue;
 		const localItems = JSON.parse(localStorage.getItem(this.#localStorageKey));
+
+		console.log(localItems);
+
+		// let storageValue;
+
+
+		// const localItems = JSON.parse(localStorage.getItem(`id${i + 1}`));
+
+		// switch (data) {
+		// 	case 'x': storageValue = localItems.x;
+		// 		break;
+		// 	case 'y': storageValue = localItems.y;
+		// 		break;
+		// 	case 'id': storageValue = localItems.id;
+		// 		break;
+		// 	case 'z': storageValue = localItems.z;
+		// 		break;
+		// 	case 'message': storageValue = localItems.message;
+		// 		break;
+		// 	default: console.error("Вы запросили несуществующую инструкцию у LocalStorage. Таких данных нет");
+		// }
+
+		// return storageValue;
 
 
 
@@ -42,50 +82,24 @@ class NoticeService {
 }
 function setUpNoticeSettings() {
 
-	
+
 
 	const notices = document.querySelectorAll('.notice');
 	const wrappers = document.querySelectorAll('.noticeWrapper');
 
 	wrappers.forEach((elem) => {
-	
+
 		const notice = elem.querySelector('.notice');
 		const delButton = elem.querySelector('button');
-	
+
 		noticeObj.create(getNoticeObjData(elem, notice));
-		
+
 		// add Bold border if element is last cicked
 		if (Number(elem.style.zIndex) === 1) {
 			notice.style.border = noticeClickedStyleBorder;
 		}
 
-		elem.addEventListener('mousedown', (e) => {
-
-			shiftX = e.clientX - elem.getBoundingClientRect().left;
-			shiftY = e.clientY - elem.getBoundingClientRect().top;
-
-			// unset zIndex from all wrapper elements 
-			clearZIndex();
-			elem.style.zIndex = 1;
-			// unset Bold border from all elements
-
-			notices.forEach(elem => {
-				elem.style.border = noticeUnClickedStyleBorder;
-			});
-			notice.style.border = noticeClickedStyleBorder;
-
-			function withMouseMoove(e) {
-				elem.style.left = e.pageX - shiftX + 'px';
-				elem.style.top = e.pageY - shiftY + 'px';
-			}
-			document.addEventListener('mousemove', withMouseMoove);
-
-			elem.addEventListener("mouseup", function () {
-				noticeObj.create(getNoticeObjData(elem, notice));
-
-				document.removeEventListener('mousemove', withMouseMoove);
-			});
-		});
+		elem.addEventListener('mousedown', mDown(elem, notices, notice));
 		elem.addEventListener('input', () => {
 			noticeObj.create(getNoticeObjData(elem, notice));
 		});
@@ -95,8 +109,40 @@ function setUpNoticeSettings() {
 		});
 	});
 
+	
 
 }
+		
+const mDown = (elem, notices, notice) => (e) => {
+
+	shiftX = e.clientX - elem.getBoundingClientRect().left;
+	shiftY = e.clientY - elem.getBoundingClientRect().top;
+
+	// unset zIndex from all wrapper elements 
+	clearZIndex();
+	elem.style.zIndex = 1;
+	// unset Bold border from all elements
+
+	notices.forEach(elem => {
+		elem.style.border = noticeUnClickedStyleBorder;
+	});
+	notice.style.border = noticeClickedStyleBorder;
+
+	function withMouseMoove(e) {
+		elem.style.left = e.pageX - shiftX + 'px';
+		elem.style.top = e.pageY - shiftY + 'px';
+	}
+	document.addEventListener('mousemove', withMouseMoove);
+
+	const mUp = (elem, notice, withMouseMoove) => () => {
+		noticeObj.create(getNoticeObjData(elem, notice));
+		document.removeEventListener('mousemove', withMouseMoove);
+	};
+
+	elem.addEventListener("mouseup", mUp(elem, notice, withMouseMoove));
+};	
+
+
 
 
 
@@ -106,13 +152,13 @@ const noticeObj = new NoticeService();
 function getNoticeObjData(elem, notice) {
 
 	return {
-		id: `id${elem.getAttribute('data-index')}`,
+		// id: `${elem.getAttribute('data-index')}`,
 		x: `${elem.style.left}`,
 		y: `${elem.style.top}`,
 		z: `${elem.style.zIndex}`,
 		message: `${notice?.value ?? ""}`,
 	};
-	
+
 }
 
 
@@ -165,18 +211,6 @@ function getLocalNoticeInfo(data, i) {
 // }
 
 
-function startApplicationWork() {
-	if (localStorage.length > 0) {
-		for (let i = 0; i < localStorage.length; i++) {
-
-			elemCoordX = notice.read('x', i);
-			elemCoordY = getLocalNoticeInfo('y', i);
-			zIndex = getLocalNoticeInfo('z', i);
-			noticeValue = getLocalNoticeInfo('message', i);
-			addNewNotice();
-		}
-	}
-}
 
 
 
@@ -243,6 +277,11 @@ function addNewNotice() {
 }
 
 function createActionAddNotice() {
+	const wrappers = document.querySelectorAll('.noticeWrapper');
+	wrappers.forEach(elem => {
+		elem.removeEventListener('mousedown', mDown);
+		elem.removeEventListener('mouseup', mUp);
+	});
 	addNotice.addEventListener('click', () => {
 		noticeValue = undefined;
 		elemCoordX = '40%';
