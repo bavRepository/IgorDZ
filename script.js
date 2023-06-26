@@ -12,7 +12,7 @@ let noticeValue;
 let shiftX;
 let shiftY;
 
-function setDataToLocal(wrap, notice) {
+function addNoticeToLocalStorage(wrap, notice) {
 
 	const elemsData = {
 		id: `id${wrap.getAttribute('data-index')}`,
@@ -64,13 +64,13 @@ function clearZIndex() {
 	const wrappers = document.querySelectorAll('.noticeWrapper');
 	wrappers.forEach((wrap, i) => {
 		wrap.style.zIndex = 'auto';
-		setDataToLocal(wrap, notices[i]);
+		addNoticeToLocalStorage(wrap, notices[i]);
 	});
 }
 
 
 
-function delDataFroLocal(elem) {
+function getNoticeFromLocalStorage(elem) {
 	localStorage.removeItem(`id${elem.getAttribute('data-index')}`);
 }
 
@@ -84,7 +84,7 @@ function setUpNoticeSettings() {
 		const notice = elem.querySelector('.notice');
 		const delButton = elem.querySelector('button');
 
-		setDataToLocal(elem, notice);
+		addNoticeToLocalStorage(elem, notice);
 
 		// add Bold border if element is last cicked
 		if (Number(elem.style.zIndex) === 1) {
@@ -113,16 +113,16 @@ function setUpNoticeSettings() {
 			document.addEventListener('mousemove', withMouseMoove);
 
 			elem.addEventListener("mouseup", function () {
-				setDataToLocal(elem, notice);
+				addNoticeToLocalStorage(elem, notice);
 
 				document.removeEventListener('mousemove', withMouseMoove);
 			});
 		});
 		elem.addEventListener('input', () => {
-			setDataToLocal(elem, notice);
+			addNoticeToLocalStorage(elem, notice);
 		});
 		delButton.addEventListener('click', () => {
-			delDataFroLocal(elem);
+			getNoticeFromLocalStorage(elem);
 			elem.remove();
 		});
 	});
