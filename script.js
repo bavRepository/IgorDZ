@@ -1,7 +1,16 @@
 'use strict';
 
 class NoticeManager {
-	create() {}
+	create() {
+		const noticeWrapper = document.createElement('div');
+		const notice = document.createElement('textarea');
+
+		noticeWrapper.classList.add('noticeWrapper');
+		notice.classList.add('notice');
+
+		noticeWrapper.append(notice);
+		document.body.append(noticeWrapper);
+	}
 }
 
 function setAddButtonListener() {
