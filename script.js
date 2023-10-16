@@ -1,5 +1,10 @@
 'use strict';
 
+let shiftX;
+let shiftY;
+const container = document.querySelector('.container');
+const wrappers = document.querySelectorAll('.noticeWrapper');
+
 class NoticeManager {
 	create() {
 		const noticeWrapper = document.createElement('div');
@@ -7,10 +12,18 @@ class NoticeManager {
 
 		noticeWrapper.classList.add('noticeWrapper');
 		notice.classList.add('notice');
-
+		const delButton = createDelButton();
 		noticeWrapper.append(notice);
-		document.body.append(noticeWrapper);
+		noticeWrapper.append(delButton);
+		container.append(noticeWrapper);
 	}
+}
+
+function createDelButton() {
+	const delButton = document.createElement('button');
+	delButton.classList.add('delBtn');
+	delButton.textContent = 'Удалить';
+	return delButton;
 }
 
 function setAddButtonListener() {
@@ -19,5 +32,15 @@ function setAddButtonListener() {
 		nm.create();
 	});
 }
+
+function setNoticeListeners() {
+	container.addEventListener('click', function (e) {
+		const target = e.target;
+		if (target.classList == 'delBtn') {
+			alert('Е бой!');
+		}
+	});
+}
 const nm = new NoticeManager();
 setAddButtonListener();
+setNoticeListeners();
