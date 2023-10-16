@@ -1,75 +1,71 @@
 * {
-    box-sizing: border-box;
+	box-sizing: border-box;
 }
 
-html, body {
-    overflow: hidden;
-  }
-  
-  body {
-    overflow-y: scroll;
-    width: calc(100% + 20px);
-  }
+html,
+body {
+	overflow: hidden;
+}
 
-.container {
-    height: 100vh;
+body {
+	overflow-y: scroll;
+	width: calc(100% + 20px);
 }
 
 .noticeWrapper {
-    position: absolute;
+	position: absolute;
 }
 
-
 .notice {
-    resize: none;
-    line-height: 1.2;
-    min-height: calc(1.2em * 4);
-    padding: 10px;
-    background-color: tomato;
-    border: 1px solid black;
-    border-radius: 10%;
-    cursor: pointer;
-    font-size: 28px;
-    color:#ADFF2F;
-    outline : none;
+	resize: none;
+	line-height: 1.2;
+	min-height: calc(1.2em * 4);
+	padding: 10px;
+	background-color: tomato;
+	border: 1px solid black;
+	border-radius: 10%;
+	cursor: pointer;
+	font-size: 28px;
+	color: #adff2f;
+	outline: none;
 }
 
 .addNotice {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    right: 20px;
-    top: 10%;
-    width: 200px;
-    height: 200px;
-    border-radius: 100%;
-    font-size: 62px;
-    background: #191970;
-    position: fixed;
-    cursor: pointer;
-    color: #ADFF2F;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	right: 20px;
+	top: 10%;
+	width: 200px;
+	height: 200px;
+	border-radius: 100%;
+	font-size: 62px;
+	background: #191970;
+	position: fixed;
+	cursor: pointer;
+	color: #adff2f;
 }
 
 .removeNotice {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    bottom: 10%;
-    right: 20px;
-    width: 200px;
-    height: 200px;
-    border-radius: 100%;
-    font-size: 62px;
-    background: #191970;
-    position: fixed;
-    cursor: pointer;
-    color: #ADFF2F;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	bottom: 10%;
+	right: 20px;
+	width: 200px;
+	height: 200px;
+	border-radius: 100%;
+	font-size: 62px;
+	background: #191970;
+	position: fixed;
+	cursor: pointer;
+	color: #adff2f;
 }
 
 .show {
-    display: block;
+	display: block;
 }
 
 .hide {
-    display: none;
+	display: none;
 }
