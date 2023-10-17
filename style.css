@@ -23,7 +23,7 @@ body {
 
 .delBtn {
 	position: absolute;
-	bottom: -25px;
+	bottom: -29px;
 	left: 50%;
 	transform: translateX(-50%);
 	width: 120px;
@@ -35,10 +35,10 @@ body {
 	background: papayawhip;
 	height: 100vh;
 	width: 100hv;
-	position: relative;
 }
 
 .notice {
+	display: block;
 	resize: none;
 	line-height: 1.2;
 	min-height: calc(1.2em * 4);
