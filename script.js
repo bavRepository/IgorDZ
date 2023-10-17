@@ -4,7 +4,6 @@ let shiftX;
 let shiftY;
 let noticeID = 0;
 const container = document.querySelector('.container');
-const wrappers = document.querySelectorAll('.noticeWrapper');
 
 function creatingNotice() {
 	const noticeWrapper = document.createElement('div');
@@ -30,12 +29,25 @@ function creatingNotice() {
 	});
 
 	noticeWrapper.addEventListener('mousedown', function (e) {
+		// set all elements with 1px border radius and zIndex to auto
+		const noticeWrapperElements = document.querySelectorAll('.noticeWrapper');
+		noticeWrapperElements.forEach(elem => {
+			elem.querySelector('.notice').style.borderWidth = '1px';
+			elem.style.zIndex = 'auto';
+		});
+		// set max zIndex for noticeWrapper
+		noticeWrapper.style.zIndex = `${noticeWrapperElements.length}`;
+		// set current notice a bold border
+		noticeWrapper.querySelector('.notice').style.borderWidth = '3px';
+		// get coordinates shift inside the element
 		shiftX = e.clientX - noticeWrapper.getBoundingClientRect().left;
 		shiftY = e.clientY - noticeWrapper.getBoundingClientRect().top;
-		console.log(shiftX + ' ' + shiftY);
+		// add move listener after mousedown
 		document.addEventListener('mousemove', mMove);
 		function mMove(e) {
+			// remove transform translate with x50% and y50%
 			noticeWrapper.style.transform = 'none';
+			// repeat mouse position for notice
 			noticeWrapper.style.left = e.pageX - shiftX + 'px';
 			noticeWrapper.style.top = e.pageY - shiftY + 'px';
 		}
