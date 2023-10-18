@@ -8,7 +8,7 @@ const container = document.querySelector('.container');
 function creatingNotice(localNoticeData) {
 	const noticeWrapper = document.createElement('div'),
 		notice = document.createElement('textarea'),
-		noticeTmpId = localNoticeData?.left ?? ++noticeID;
+		noticeTmpId = localNoticeData?.elemId ?? ++noticeID;
 	noticeWrapper.classList.add('noticeWrapper');
 	noticeWrapper.style.left = localNoticeData?.left ?? '40%';
 	noticeWrapper.style.top = localNoticeData?.top ?? '40%';
@@ -31,7 +31,6 @@ function creatingNotice(localNoticeData) {
 		});
 		// set max zIndex for current noticeWrapper
 		noticeWrapper.style.zIndex = `${noticeWrapperElements.length}`;
-		// localNoticeData.zIndex ?? `${noticeWrapperElements.length}`;
 		// set bold border for current notice
 		noticeWrapper.querySelector('.notice').style.borderWidth = '3px';
 	}
