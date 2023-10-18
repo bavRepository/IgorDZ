@@ -60,6 +60,7 @@ function creatingNotice(localNoticeData) {
 		}
 
 		if (target.classList == 'delBtn') {
+			lsm.delete(noticeObjCreating(noticeWrapper));
 			noticeWrapper.remove();
 		}
 	});
@@ -113,16 +114,32 @@ class LocalStorageManager {
 		);
 	}
 	read() {
-		const noticeFromLocal = localStorage.getItem(`${this.#localStorageKey}`);
-		console.log(noticeFromLocal);
-		// if (noticeFromLocal.length > 0) {
-		if (noticeFromLocal) {
-			JSON.parse(noticeFromLocal).forEach(elem => {
-				creatingNotice(elem);
-			});
-		}
+		const noticeFromLocal =
+			localStorage.getItem(`${this.#localStorageKey}`) ?? '[]';
+		JSON.parse(noticeFromLocal).forEach(elem => {
+			creatingNotice(elem);
+		});
 	}
 	update(noticeDataObj) {}
+
+	delete(noticeDataObj) {
+		const noticeFromLocal =
+			localStorage.getItem(`${this.#localStorageKey}`) ?? '[]';
+		const arrayNoticeWithoutDeleted = JSON.parse(noticeFromLocal).filter(
+			item => {
+				if (
+					Number.parseInt(item.elemId) != Number.parseInt(noticeDataObj.elemId)
+				) {
+					return item;
+				}
+			}
+		);
+
+		localStorage.setItem(
+			`${this.#localStorageKey}`,
+			JSON.stringify(arrayNoticeWithoutDeleted)
+		);
+	}
 }
 
 function getDelButton() {
