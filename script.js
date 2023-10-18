@@ -11,7 +11,7 @@ function creatingNotice() {
 	noticeWrapper.classList.add('noticeWrapper');
 	noticeWrapper.setAttribute('data-id', `${++noticeID}`);
 	notice.classList.add('notice');
-	const delButton = createDelButton();
+	const delButton = getDelButton();
 	noticeWrapper.append(notice);
 	noticeWrapper.append(delButton);
 	container.append(noticeWrapper);
@@ -80,19 +80,26 @@ function creatingNotice() {
 
 class LocalStorageManager {
 	#localStorageKey = 'notice';
-	create(NoticeDataObj) {
+	create(noticeDataObj) {
 		const noticeFromLocal =
 			localStorage.getItem(`${this.#localStorageKey}`) ?? '[]';
-		const addNewNoticeToLocal = JSON.parse(noticeFromLocal);
-		addNewNoticeToLocal.push(NoticeDataObj);
+		const makeNoticeObjFromLocal = JSON.parse(noticeFromLocal);
+		const noDuplicateObjects = makeNoticeObjFromLocal.filter(item => {
+			if (
+				Number.parseInt(item.elemId) != Number.parseInt(noticeDataObj.elemId)
+			) {
+				return item;
+			}
+		});
+		noDuplicateObjects.push(noticeDataObj);
 		localStorage.setItem(
 			`${this.#localStorageKey}`,
-			JSON.stringify(addNewNoticeToLocal)
+			JSON.stringify(noDuplicateObjects)
 		);
 	}
 }
 
-function createDelButton() {
+function getDelButton() {
 	const delButton = document.createElement('button');
 	delButton.classList.add('delBtn');
 	delButton.textContent = 'Удалить';
