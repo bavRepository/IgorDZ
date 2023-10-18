@@ -5,11 +5,17 @@ let shiftY;
 let noticeID = 0;
 const container = document.querySelector('.container');
 
-function creatingNotice() {
-	const noticeWrapper = document.createElement('div');
-	const notice = document.createElement('textarea');
+function creatingNotice(localNoticeData) {
+	const noticeWrapper = document.createElement('div'),
+		notice = document.createElement('textarea'),
+		noticeTmpId = localNoticeData?.left ?? ++noticeID;
 	noticeWrapper.classList.add('noticeWrapper');
-	noticeWrapper.setAttribute('data-id', `${++noticeID}`);
+	noticeWrapper.style.left = localNoticeData?.left ?? '40%';
+	noticeWrapper.style.top = localNoticeData?.top ?? '40%';
+	noticeWrapper.setAttribute('data-id', noticeTmpId);
+	noticeWrapper.style.zIndex = localNoticeData?.zIndex ?? '1';
+	notice.value = localNoticeData?.value ?? '';
+	// noticeWrapper.setAttribute('data-id', `${++noticeID}`);
 	notice.classList.add('notice');
 	const delButton = getDelButton();
 	noticeWrapper.append(notice);
@@ -25,6 +31,7 @@ function creatingNotice() {
 		});
 		// set max zIndex for current noticeWrapper
 		noticeWrapper.style.zIndex = `${noticeWrapperElements.length}`;
+		// localNoticeData.zIndex ?? `${noticeWrapperElements.length}`;
 		// set bold border for current notice
 		noticeWrapper.querySelector('.notice').style.borderWidth = '3px';
 	}
@@ -55,6 +62,10 @@ function creatingNotice() {
 		}
 	});
 
+	notice.addEventListener('input', function () {
+		lsm.create(noticeObjCreating(noticeWrapper));
+	});
+
 	noticeWrapper.addEventListener('mousedown', function (e) {
 		// set all elements with 1px border radius and zIndex to auto
 		setUpCurrentElementsSettings();
@@ -73,6 +84,7 @@ function creatingNotice() {
 		}
 		noticeWrapper.addEventListener('mouseup', function () {
 			document.removeEventListener('mousemove', mMove);
+
 			lsm.create(noticeObjCreating(noticeWrapper));
 		});
 	});
@@ -88,6 +100,7 @@ class LocalStorageManager {
 			if (
 				Number.parseInt(item.elemId) != Number.parseInt(noticeDataObj.elemId)
 			) {
+				item.zIndex = 'auto';
 				return item;
 			}
 		});
@@ -97,6 +110,17 @@ class LocalStorageManager {
 			JSON.stringify(noDuplicateObjects)
 		);
 	}
+	read() {
+		const noticeFromLocal = localStorage.getItem(`${this.#localStorageKey}`);
+		console.log(noticeFromLocal);
+		// if (noticeFromLocal.length > 0) {
+		if (noticeFromLocal) {
+			JSON.parse(noticeFromLocal).forEach(elem => {
+				creatingNotice(elem);
+			});
+		}
+	}
+	update(noticeDataObj) {}
 }
 
 function getDelButton() {
@@ -113,4 +137,5 @@ function addNoticeButtonFn() {
 	});
 }
 const lsm = new LocalStorageManager();
+lsm.read();
 addNoticeButtonFn();
