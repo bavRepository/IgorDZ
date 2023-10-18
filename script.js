@@ -8,19 +8,22 @@ const container = document.querySelector('.container');
 function creatingNotice(localNoticeData) {
 	const noticeWrapper = document.createElement('div'),
 		notice = document.createElement('textarea'),
-		noticeTmpId = localNoticeData?.elemId ?? ++noticeID;
+		noticeTmpId = localNoticeData?.elemId ?? ++noticeID,
+		delButton = getDelButton();
+
 	noticeWrapper.classList.add('noticeWrapper');
 	noticeWrapper.style.left = localNoticeData?.left ?? '40%';
 	noticeWrapper.style.top = localNoticeData?.top ?? '40%';
 	noticeWrapper.setAttribute('data-id', noticeTmpId);
 	noticeWrapper.style.zIndex = localNoticeData?.zIndex ?? '1';
 	notice.value = localNoticeData?.value ?? '';
+
 	// noticeWrapper.setAttribute('data-id', `${++noticeID}`);
 	notice.classList.add('notice');
-	const delButton = getDelButton();
 	noticeWrapper.append(notice);
 	noticeWrapper.append(delButton);
 	container.append(noticeWrapper);
+	notice.focus();
 
 	function setUpCurrentElementsSettings() {
 		const noticeWrapperElements = document.querySelectorAll('.noticeWrapper');
@@ -94,8 +97,7 @@ class LocalStorageManager {
 	create(noticeDataObj) {
 		const noticeFromLocal =
 			localStorage.getItem(`${this.#localStorageKey}`) ?? '[]';
-		const makeNoticeObjFromLocal = JSON.parse(noticeFromLocal);
-		const noDuplicateObjects = makeNoticeObjFromLocal.filter(item => {
+		const noDuplicateObjects = JSON.parse(noticeFromLocal).filter(item => {
 			if (
 				Number.parseInt(item.elemId) != Number.parseInt(noticeDataObj.elemId)
 			) {
@@ -103,6 +105,7 @@ class LocalStorageManager {
 				return item;
 			}
 		});
+
 		noDuplicateObjects.push(noticeDataObj);
 		localStorage.setItem(
 			`${this.#localStorageKey}`,
