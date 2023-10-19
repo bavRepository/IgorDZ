@@ -3,43 +3,47 @@
 let shiftX;
 let shiftY;
 let noticeID = 0;
-const container = document.querySelector('.container');
 
 function creatingNotice(localNoticeData) {
 	const noticeWrapper = document.createElement('div'),
 		notice = document.createElement('textarea'),
-		noticeTmpId = localNoticeData?.elemId ?? ++noticeID,
 		delButton = getDelButton();
 
-	noticeWrapper.classList.add('noticeWrapper');
-	noticeWrapper.style.left = localNoticeData?.left ?? '40%';
-	noticeWrapper.style.top = localNoticeData?.top ?? '40%';
-	noticeWrapper.setAttribute('data-id', noticeTmpId);
-	noticeWrapper.style.zIndex = localNoticeData?.zIndex ?? '1';
+	// Set notice css style and get value from localStorage if not then ''
+	notice.classList.add('notice');
 	notice.value = localNoticeData?.value ?? '';
 
-	// noticeWrapper.setAttribute('data-id', `${++noticeID}`);
-	notice.classList.add('notice');
+	// Set noticeWrapper css properties
+	noticeWrapper.classList.add('noticeWrapper');
+	noticeWrapper.style.position = 'absolute';
+	noticeWrapper.style.left = localNoticeData?.left ?? '40%';
+	noticeWrapper.style.top = localNoticeData?.top ?? '40%';
+	noticeWrapper.setAttribute('data-id', localNoticeData?.elemId ?? ++noticeID);
+	noticeWrapper.style.zIndex = localNoticeData?.zIndex ?? '1';
+	// Add elements into noticeWrapper
 	noticeWrapper.append(notice);
 	noticeWrapper.append(delButton);
-	container.append(noticeWrapper);
+	// Add noticeWrapper to body
+	document.body.append(noticeWrapper);
+	// Set active notice text area
 	notice.focus();
 
 	function setUpCurrentElementsSettings() {
 		const noticeWrapperElements = document.querySelectorAll('.noticeWrapper');
-		// set all elements with 1px border radius and zIndex auto for all notice
+		// Set all elements with 1px border radius and zIndex auto for all notice
 		noticeWrapperElements.forEach(elem => {
 			elem.querySelector('.notice').style.borderWidth = '1px';
 			elem.style.zIndex = 'auto';
 		});
-		// set max zIndex for current noticeWrapper
+		// Set max zIndex for current noticeWrapper
 		noticeWrapper.style.zIndex = `${noticeWrapperElements.length}`;
-		// set bold border for current notice
+		// Set bold border for current notice
 		noticeWrapper.querySelector('.notice').style.borderWidth = '3px';
 	}
 
 	setUpCurrentElementsSettings();
 	function noticeObjCreating(elem) {
+		// Return object with css fields to send it to localStorage
 		return {
 			left: elem.style.left,
 			top: elem.style.top,
@@ -49,65 +53,74 @@ function creatingNotice(localNoticeData) {
 		};
 	}
 
-	// When we creating a new notice we send its coordinates to local storage
+	// When we are creating a new notice in HTML we send its coordinates and params to local storage
 	lsm.create(noticeObjCreating(noticeWrapper));
 
+	// Set event on Click on noticeWrapper
 	noticeWrapper.addEventListener('click', function (e) {
 		const target = e.target;
-
+		// Is it notice? Set bold border
 		if (target.classList == 'notice') {
 			target.style.borderWidth = '3px';
 		}
-
+		// Is it delBtn? Performing removing noticeWrapper fn as an elem from html
 		if (target.classList == 'delBtn') {
 			lsm.delete(noticeObjCreating(noticeWrapper));
 			noticeWrapper.remove();
 		}
 	});
 
+	// Every time when we enter any symbol into text field there is creating a new notice obj in localStorage
 	notice.addEventListener('input', function () {
 		lsm.create(noticeObjCreating(noticeWrapper));
 	});
 
 	noticeWrapper.addEventListener('mousedown', function (e) {
-		// set all elements with 1px border radius and zIndex to auto
+		// Every 'mousedown' on the noticeWrapper we are updating our element's data
 		setUpCurrentElementsSettings();
-		// get coordinates shift inside the element
+		// Get a shift's coordinates inside the element
 		shiftX = e.clientX - noticeWrapper.getBoundingClientRect().left;
 		shiftY = e.clientY - noticeWrapper.getBoundingClientRect().top;
-		// add move listener after mousedown
-
+		//
 		document.addEventListener('mousemove', mMove);
 		function mMove(e) {
-			// remove transform translate with x50% and y50%
+			// Remove transform translate with x50% and y50% to set correct element position
 			noticeWrapper.style.transform = 'none';
-			// repeat mouse position for notice
+			// Repeat mouse position for notice
 			noticeWrapper.style.left = e.pageX - shiftX + 'px';
 			noticeWrapper.style.top = e.pageY - shiftY + 'px';
 		}
+		// When we do 'mouseup' event above the noticeWrapper there is removing mousemove event
 		noticeWrapper.addEventListener('mouseup', function () {
 			document.removeEventListener('mousemove', mMove);
-
 			lsm.create(noticeObjCreating(noticeWrapper));
 		});
 	});
 }
 
+// Creating class for manage LocalStorage data
 class LocalStorageManager {
 	#localStorageKey = 'notice';
+	// Method create accepts data from Html elem, in our case is is 'noticeWrapper', and send it to localStorage
 	create(noticeDataObj) {
+		// At the first we get have already pushed information before there.
+		// If there is empty in localStorage we just creating string's symbols of an empty array
 		const noticeFromLocal =
 			localStorage.getItem(`${this.#localStorageKey}`) ?? '[]';
+		// That string gets parsing for a future object. After that we creating a new array and use
+		// filter for the last one. An old notice with the same ID does not fill into a new array
 		const noDuplicateObjects = JSON.parse(noticeFromLocal).filter(item => {
 			if (
 				Number.parseInt(item.elemId) != Number.parseInt(noticeDataObj.elemId)
 			) {
+				// All elements that have already been there get zIndex 'auto' except the new one that is going to come to localStorage
 				item.zIndex = 'auto';
 				return item;
 			}
 		});
-
+		// Pushing of a new notice as an object to a new array where have already been other updated objects of notices
 		noDuplicateObjects.push(noticeDataObj);
+		// At last we send new array of notices objects to localStorage however using stringify before that to format our structure as a string
 		localStorage.setItem(
 			`${this.#localStorageKey}`,
 			JSON.stringify(noDuplicateObjects)

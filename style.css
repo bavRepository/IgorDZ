@@ -7,16 +7,12 @@ body {
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
+	background: papayawhip;
 }
 
 body {
 	overflow-y: scroll;
 	width: calc(100% + 20px);
-}
-
-.noticeWrapper {
-	position: absolute;
-	/* transform: translate(-50%, -50%); */
 }
 
 .delBtn {
@@ -27,12 +23,6 @@ body {
 	width: 120px;
 	height: 30px;
 	display: block;
-}
-
-.container {
-	background: papayawhip;
-	height: 100vh;
-	width: 100hv;
 }
 
 .notice {
