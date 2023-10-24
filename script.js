@@ -1,7 +1,5 @@
 'use strict';
 
-const dsk = new Desktop();
-
 class LocalStorageManager {
 	#localStorageKey = 'notice';
 
@@ -26,7 +24,8 @@ class LocalStorageManager {
 		);
 	}
 	read() {
-		localStorage.getItem(`${this.#localStorageKey}`) ?? '[]';
+		const noticeFromLocal =
+			localStorage.getItem(`${this.#localStorageKey}`) ?? '[]';
 		return JSON.parse(noticeFromLocal);
 	}
 	update(noticeDataObj) {}
@@ -73,130 +72,140 @@ function readNoticesFromLocal() {
 	const arrayNoticesFromLocal = lsm.read();
 	if (arrayNoticesFromLocal.length > 0) {
 		arrayNoticesFromLocal.forEach(localStorageObj => {
-			const notice = new Notice(
-				localStorageObj.noticeText,
-				localStorageObj.noticeTimeCreating
-			);
-			dsk.creatingNotice(
+			const notice = new Notice(localStorageObj.value, localStorageObj.elemId);
+			creatingNoticeElement(
 				notice,
-				localStorageObj.wrapperLeft,
-				localStorageObj.wrapperTop,
-				localStorageObj.wrapperZIndex
+				localStorageObj.left,
+				localStorageObj.top,
+				localStorageObj.zIndex
 			);
 		});
 	}
 }
 
 class Desktop {
-	constructor() {
-		const addButton = document.querySelector('.addNotice');
-		addButton.addEventListener('click', function () {
-			const notice = new Notice('', new Date.now());
-			creatingNotice(notice);
-		});
+	#noticesWrappersList = [];
+	createNotice(elem) {
+		this.#noticesWrappersList.push(elem);
 	}
-	noticesWrappersList = [];
-	creatingNotice(
-		notice,
-		wrapperLeft = '40%',
-		wrapperTop = '40%',
-		wrapperZIndex = 'auto'
-	) {
-		function getDelButton() {
-			const delButton = document.createElement('button');
-			delButton.classList.add('delBtn');
-			delButton.textContent = 'Удалить';
-			return delButton;
-		}
-
-		const noticeWrapper = document.createElement('div'),
-			noticeElem = document.createElement('textarea'),
-			delButton = getDelButton();
-
-		// Set notice css style and get value from localStorage if not then ''
-		noticeElem.classList.add('notice');
-		noticeElem.value = notice?.textValue ?? '';
-
-		// Set noticeWrapper css properties
-		noticeWrapper.classList.add('noticeWrapper');
-		noticeWrapper.style.position = 'absolute';
-		noticeWrapper.style.left = localNoticeData?.left ?? '40%';
-		noticeWrapper.style.top = localNoticeData?.top ?? '40%';
-		noticeWrapper.setAttribute('data-id', notice?.timeCreating);
-		noticeWrapper.style.zIndex = localNoticeData?.zIndex ?? '1';
-		// Add elements into noticeWrapper
-		noticeWrapper.append(notice);
-		noticeWrapper.append(delButton);
-		// Add noticeWrapper to body
-		document.body.append(noticeWrapper);
-		// Set active notice text area
-		notice.focus();
-		noticesWrappersList.push(noticeWrapper);
-		// Set event on Click on noticeWrapper
-		noticeWrapper.addEventListener('click', function (e) {
-			const target = e.target;
-			// Is it notice? Set bold border
-			if (target.classList == 'notice') {
-				target.style.borderWidth = '3px';
-			}
-			// Is it delBtn? Performing removing noticeWrapper fn as an elem from html
-			if (target.classList == 'delBtn') {
-				lsm.delete(noticeObjCreating(noticeWrapper));
-				noticeWrapper.remove();
-			}
-		});
-		// Every time when we enter any symbol into text field there is creating a new notice obj in localStorage
-		notice.addEventListener('input', function () {
-			lsm.create(noticeObjCreating(noticeWrapper));
-		});
-
-		noticeWrapper.addEventListener('mousedown', function (e) {
-			// Every 'mousedown' on the noticeWrapper we are updating our element's data
-			//setUpCurrentElementsSettings();
-
-			this.clearNoticesElementsStyle();
-			noticeWrapper.style.zIndex = wrapperZIndex;
-			noticeWrapper.querySelector('.notice').style.borderWidth = '3px';
-
-			// Get a shift's coordinates inside the element
-			const shiftX = e.clientX - noticeWrapper.getBoundingClientRect().left;
-			const shiftY = e.clientY - noticeWrapper.getBoundingClientRect().top;
-			//
-			document.addEventListener('mousemove', mMove);
-			function mMove(e) {
-				// Remove transform translate with x50% and y50% to set correct element position
-				noticeWrapper.style.transform = 'none';
-				// Repeat mouse position for notice
-				noticeWrapper.style.left = e.pageX - shiftX + 'px';
-				noticeWrapper.style.top = e.pageY - shiftY + 'px';
-			}
-			// When we do 'mouseup' event above the noticeWrapper there is removing mousemove event
-			noticeWrapper.addEventListener('mouseup', function () {
-				document.removeEventListener('mousemove', mMove);
-				lsm.create(noticeObjCreating(noticeWrapper));
-			});
-		});
-		function noticeObjCreating(elem) {
-			// Return object with css fields to send it to localStorage
-			return {
-				left: elem.style.left,
-				top: elem.style.top,
-				zIndex: elem.style.zIndex,
-				value: elem.querySelector('.notice').value,
-				elemId: elem.getAttribute('data-id'),
-			};
-		}
-	}
-	clearNoticesElementsStyle() {
-		noticesWrappersList.forEach(elem => {
-			elem.querySelector('.notice').style.borderWidth = '1px';
+	resetNoticesStyle() {
+		this.#noticesWrappersList.forEach(elem => {
 			elem.style.zIndex = 'auto';
+			elem.querySelector('.notice').style.borderWidth = '1px';
 		});
-		// Set max zIndex for current noticeWrapper
-		// noticeWrapper.style.zIndex = `${noticeWrapperElements.length}`;
-		// Set bold border for current notice
-		// noticeWrapper.querySelector('.notice').style.borderWidth = '3px';
+	}
+	removeNotice(elemId) {
+		this.#noticesWrappersList.forEach(elem => {
+			if (elem.getAttribute('data-id') == elemId) {
+				elem.remove();
+			}
+		});
 	}
 }
 
+function creatingNoticeElement(
+	notice,
+	wrapperLeft = '40%',
+	wrapperTop = '40%',
+	wrapperZIndex = 'auto'
+) {
+	function getDelButton() {
+		const delButton = document.createElement('button');
+		delButton.classList.add('delBtn');
+		delButton.textContent = 'Удалить';
+		return delButton;
+	}
+
+	const noticeWrapper = document.createElement('div'),
+		noticeElem = document.createElement('textarea'),
+		delButton = getDelButton();
+
+	// Set notice css style and get value from localStorage if not then ''
+	noticeElem.classList.add('notice');
+	noticeElem.value = notice?.textValue ?? '';
+	noticeElem.style.border = '3px solid black';
+
+	// Set noticeWrapper css properties
+	noticeWrapper.classList.add('noticeWrapper');
+	noticeWrapper.style.position = 'absolute';
+	noticeWrapper.style.left = wrapperLeft;
+	noticeWrapper.style.top = wrapperTop;
+	noticeWrapper.setAttribute('data-id', notice?.timeCreating);
+	noticeWrapper.style.zIndex = wrapperZIndex;
+	// Add elements into noticeWrapper
+	noticeWrapper.append(noticeElem);
+	noticeWrapper.append(delButton);
+	// Add noticeWrapper to body
+	dsk.resetNoticesStyle();
+	dsk.createNotice(noticeWrapper);
+	document.body.append(noticeWrapper);
+	// Set active notice text area
+	noticeElem.focus();
+	lsm.create(noticeObjCreating(noticeWrapper));
+	// this.#noticeElementList.push(noticeWrapper);
+	// Set event on Click on noticeWrapper
+	noticeWrapper.addEventListener('click', function (e) {
+		const target = e.target;
+		// Is it delBtn? Performing removing noticeWrapper fn as an elem from html
+		if (target.classList == 'delBtn') {
+			lsm.delete(noticeObjCreating(noticeWrapper));
+			dsk.removeNotice(notice?.timeCreating);
+		}
+	});
+	// Every time when we enter any symbol into text field there is creating a new notice obj in localStorage
+	noticeElem.addEventListener('input', function () {
+		lsm.create(noticeObjCreating(noticeWrapper));
+	});
+
+	noticeWrapper.addEventListener('mousedown', function (e) {
+		const target = e.target;
+		// Is it delBtn? Performing removing noticeWrapper fn as an elem from html
+		if (target.classList == 'notice') {
+			dsk.resetNoticesStyle();
+			noticeWrapper.style.zIndex = 1;
+			target.style.borderWidth = '3px';
+		}
+
+		// Get a shift's coordinates inside the element
+		const shiftX = e.clientX - noticeWrapper.getBoundingClientRect().left;
+		const shiftY = e.clientY - noticeWrapper.getBoundingClientRect().top;
+		//
+		document.addEventListener('mousemove', mMove);
+		function mMove(e) {
+			// Remove transform translate with x50% and y50% to set correct element position
+			noticeWrapper.style.transform = 'none';
+			// Repeat mouse position for notice
+			noticeWrapper.style.left = e.pageX - shiftX + 'px';
+			noticeWrapper.style.top = e.pageY - shiftY + 'px';
+		}
+		// When we do 'mouseup' event above the noticeWrapper there is removing mousemove event
+		noticeWrapper.addEventListener('mouseup', function () {
+			document.removeEventListener('mousemove', mMove);
+			lsm.create(noticeObjCreating(noticeWrapper));
+		});
+	});
+	function noticeObjCreating(elem) {
+		// Return object with css fields to send it to localStorage
+		return {
+			left: elem.style.left,
+			top: elem.style.top,
+			zIndex: elem.style.zIndex,
+			value: elem.querySelector('.notice').value,
+			elemId: elem.getAttribute('data-id'),
+		};
+	}
+}
+
+function addElemEventInitialization(sel) {
+	const elem = document.querySelector(sel);
+	elem.addEventListener('click', function () {
+		dsk.resetNoticesStyle();
+		const notice = new Notice('', Date.now());
+		creatingNoticeElement(notice);
+	});
+}
+
+const dsk = new Desktop();
+const lsm = new LocalStorageManager();
 readNoticesFromLocal();
+addElemEventInitialization('.addNotice');
