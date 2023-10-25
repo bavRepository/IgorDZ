@@ -208,7 +208,7 @@ class Desktop {
 				top: elem.style.top,
 				zIndex: elem.style.zIndex,
 				value: elem.querySelector('.notice').value,
-				elemId: elem.getAttribute('data-id'),
+				elemId: elem.querySelector('.notice').getAttribute('data-id'),
 			};
 		}
 	}
