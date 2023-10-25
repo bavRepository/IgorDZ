@@ -52,160 +52,246 @@ class LocalStorageManager {
 
 class Notice {
 	#text;
+	#border = '3px solid black';
 	#timeCreating;
-	constructor(text, timeCreating) {
+	#customClassName;
+
+	constructor(text = '', timeCreating = Date.now(), customClassName = '') {
 		this.#text = text;
 		this.#timeCreating = timeCreating;
+		this.customClassName = customClassName;
 	}
-	set textValue(value) {
-		this.#text = value;
+
+	createAndGetNotice() {}
+	set timeCreating(value) {
+		this.#timeCreating = timeCreating;
 	}
-	get textValue() {
-		return this.#text;
-	}
+
 	get timeCreating() {
 		return this.#timeCreating;
 	}
-}
 
-function readNoticesFromLocal() {
-	const arrayNoticesFromLocal = lsm.read();
-	if (arrayNoticesFromLocal.length > 0) {
-		arrayNoticesFromLocal.forEach(localStorageObj => {
-			const notice = new Notice(localStorageObj.value, localStorageObj.elemId);
-			creatingNoticeElement(
-				notice,
-				localStorageObj.left,
-				localStorageObj.top,
-				localStorageObj.zIndex
-			);
-		});
+	set customClassName(value) {
+		this.#customClassName = value;
+	}
+
+	get customClassName() {
+		return this.#customClassName;
+	}
+
+	set border(value) {
+		this.#border = value;
+	}
+
+	get border() {
+		return this.#border;
+	}
+
+	set text(value) {
+		this.#text = value;
+	}
+	get text() {
+		return this.#text;
 	}
 }
 
 class Desktop {
-	#noticesWrappersList = [];
-	createNotice(elem) {
-		this.#noticesWrappersList.push(elem);
+	#arrayWrapAndNoteInformation;
+	constructor(arrayWrapAndNoteInformation) {
+		this.#arrayWrapAndNoteInformation = arrayWrapAndNoteInformation;
+	}
+
+	get arrayWrapAndNoteInformation() {
+		return this.#arrayWrapAndNoteInformation;
+	}
+
+	set arrayWrapAndNoteInformation(WrapNoticeArray) {
+		this.#arrayWrapAndNoteInformation = WrapNoticeArray;
+	}
+
+	addNotice(elem) {
+		this.#arrayWrapAndNoteInformation.push(elem);
 	}
 	resetNoticesStyle() {
-		this.#noticesWrappersList.forEach(elem => {
+		document.querySelectorAll('.noticeWrapper').forEach(elem => {
 			elem.style.zIndex = 'auto';
 			elem.querySelector('.notice').style.borderWidth = '1px';
 		});
 	}
 	removeNotice(elemId) {
-		this.#noticesWrappersList.forEach(elem => {
-			if (elem.getAttribute('data-id') == elemId) {
-				elem.remove();
+		this.#arrayWrapAndNoteInformation =
+			this.#arrayWrapAndNoteInformation.filter(elem => {
+				if (elem.getAttribute('data-id') != elemId) {
+					return elem;
+				}
+			});
+	}
+	init() {
+		if (this.#arrayWrapAndNoteInformation.length > 0) {
+			this.#arrayWrapAndNoteInformation.forEach(localStorageObj => {
+				const noticeDescr = new Notice(
+					localStorageObj.value,
+					localStorageObj.elemId
+				);
+
+				const htmlNotice = document.createElement('textarea');
+				htmlNotice.className = `notice ${noticeDescr.className}`.trim();
+				htmlNotice.value = noticeDescr.text;
+				htmlNotice.style.border = noticeDescr.border;
+				htmlNotice.setAttribute('data-id', noticeDescr.timeCreating);
+				function getDelButton() {
+					const delButton = document.createElement('button');
+					delButton.classList.add('delBtn');
+					delButton.textContent = 'Удалить';
+					return delButton;
+				}
+
+				const noticeWrapper = document.createElement('div'),
+					delButton = getDelButton();
+
+				noticeWrapper.classList.add('noticeWrapper');
+				noticeWrapper.style.position = 'absolute';
+				noticeWrapper.style.left = localStorageObj.left;
+				noticeWrapper.style.top = localStorageObj.top;
+				noticeWrapper.style.zIndex = localStorageObj.zIndex;
+				noticeWrapper.append(htmlNotice);
+				noticeWrapper.append(delButton);
+				desktop.resetNoticesStyle(htmlNotice);
+				document.body.append(noticeWrapper);
+
+				htmlNotice.addEventListener('click', function (e) {
+					desktop.resetNoticesStyle();
+					noticeWrapper.style.zIndex = 10;
+					e.target.style.borderWidth = '3px';
+				});
+
+				htmlNotice.focus();
+				noticeWrapper.addEventListener('click', function (e) {
+					const target = e.target;
+					if (target.classList == 'delBtn') {
+						noticeWrapper.remove();
+						localServiceManager.delete(noticeObjCreating(noticeWrapper));
+						desktop.removeNotice(htmlNotice?.timeCreating);
+					}
+				});
+				htmlNotice.addEventListener('input', function () {
+					localServiceManager.create(noticeObjCreating(noticeWrapper));
+				});
+
+				noticeWrapper.addEventListener('mousedown', function (e) {
+					desktop.resetNoticesStyle();
+					noticeWrapper.style.zIndex = 10;
+					noticeWrapper.querySelector('.notice').style.borderWidth = '3px';
+					const shiftX = e.clientX - noticeWrapper.getBoundingClientRect().left;
+					const shiftY = e.clientY - noticeWrapper.getBoundingClientRect().top;
+					document.addEventListener('mousemove', mMove);
+					function mMove(e) {
+						noticeWrapper.style.transform = 'none';
+						noticeWrapper.style.left = e.pageX - shiftX + 'px';
+						noticeWrapper.style.top = e.pageY - shiftY + 'px';
+					}
+					noticeWrapper.addEventListener('mouseup', function () {
+						document.removeEventListener('mousemove', mMove);
+						localServiceManager.create(noticeObjCreating(noticeWrapper));
+					});
+				});
+			});
+		}
+		const elem = document.querySelector('.addNotice');
+		elem.addEventListener('click', function () {
+			const noticeDescr = new Notice();
+			desktop.createNotice(noticeDescr);
+		});
+		function noticeObjCreating(elem) {
+			return {
+				left: elem.style.left,
+				top: elem.style.top,
+				zIndex: elem.style.zIndex,
+				value: elem.querySelector('.notice').value,
+				elemId: elem.getAttribute('data-id'),
+			};
+		}
+	}
+	createNotice(
+		noticeDescr,
+		wrapperLeft = '40%',
+		wrapperTop = '40%',
+		wrapperZIndex = 'auto'
+	) {
+		function getDelButton() {
+			const delButton = document.createElement('button');
+			delButton.classList.add('delBtn');
+			delButton.textContent = 'Удалить';
+			return delButton;
+		}
+
+		const htmlNotice = document.createElement('textarea');
+		htmlNotice.className = `notice ${noticeDescr.className}`;
+		htmlNotice.value = noticeDescr.text;
+		htmlNotice.style.border = noticeDescr.border;
+		htmlNotice.setAttribute('data-id', noticeDescr.timeCreating);
+
+		const noticeWrapper = document.createElement('div'),
+			delButton = getDelButton();
+
+		noticeWrapper.classList.add('noticeWrapper');
+		noticeWrapper.style.position = 'absolute';
+		noticeWrapper.style.left = wrapperLeft;
+		noticeWrapper.style.top = wrapperTop;
+		noticeWrapper.append(htmlNotice);
+		noticeWrapper.append(delButton);
+		this.#arrayWrapAndNoteInformation.push(noticeObjCreating(noticeWrapper));
+		noticeWrapper.style.zIndex = wrapperZIndex;
+		desktop.resetNoticesStyle();
+		document.body.append(noticeWrapper);
+		localServiceManager.create(noticeObjCreating(noticeWrapper));
+
+		htmlNotice.focus();
+
+		noticeWrapper.addEventListener('click', function (e) {
+			const target = e.target;
+			if (target.classList == 'delBtn') {
+				noticeWrapper.remove();
+				localServiceManager.delete(noticeObjCreating(noticeWrapper));
+				desktop.removeNotice(noticeDescr?.timeCreating);
 			}
 		});
-	}
-}
-
-function creatingNoticeElement(
-	notice,
-	wrapperLeft = '40%',
-	wrapperTop = '40%',
-	wrapperZIndex = 'auto'
-) {
-	function getDelButton() {
-		const delButton = document.createElement('button');
-		delButton.classList.add('delBtn');
-		delButton.textContent = 'Удалить';
-		return delButton;
-	}
-
-	const noticeWrapper = document.createElement('div'),
-		noticeElem = document.createElement('textarea'),
-		delButton = getDelButton();
-
-	// Set notice css style and get value from localStorage if not then ''
-	noticeElem.classList.add('notice');
-	noticeElem.value = notice?.textValue ?? '';
-	noticeElem.style.border = '3px solid black';
-
-	// Set noticeWrapper css properties
-	noticeWrapper.classList.add('noticeWrapper');
-	noticeWrapper.style.position = 'absolute';
-	noticeWrapper.style.left = wrapperLeft;
-	noticeWrapper.style.top = wrapperTop;
-	noticeWrapper.setAttribute('data-id', notice?.timeCreating);
-	noticeWrapper.style.zIndex = wrapperZIndex;
-	// Add elements into noticeWrapper
-	noticeWrapper.append(noticeElem);
-	noticeWrapper.append(delButton);
-	// Add noticeWrapper to body
-	dsk.resetNoticesStyle();
-	dsk.createNotice(noticeWrapper);
-	document.body.append(noticeWrapper);
-	// Set active notice text area
-	noticeElem.focus();
-	lsm.create(noticeObjCreating(noticeWrapper));
-	// this.#noticeElementList.push(noticeWrapper);
-	// Set event on Click on noticeWrapper
-	noticeWrapper.addEventListener('click', function (e) {
-		const target = e.target;
-		// Is it delBtn? Performing removing noticeWrapper fn as an elem from html
-		if (target.classList == 'delBtn') {
-			lsm.delete(noticeObjCreating(noticeWrapper));
-			dsk.removeNotice(notice?.timeCreating);
-		}
-	});
-	// Every time when we enter any symbol into text field there is creating a new notice obj in localStorage
-	noticeElem.addEventListener('input', function () {
-		lsm.create(noticeObjCreating(noticeWrapper));
-	});
-
-	noticeWrapper.addEventListener('mousedown', function (e) {
-		const target = e.target;
-		// Is it delBtn? Performing removing noticeWrapper fn as an elem from html
-		if (target.classList == 'notice') {
-			dsk.resetNoticesStyle();
-			noticeWrapper.style.zIndex = 1;
-			target.style.borderWidth = '3px';
-		}
-
-		// Get a shift's coordinates inside the element
-		const shiftX = e.clientX - noticeWrapper.getBoundingClientRect().left;
-		const shiftY = e.clientY - noticeWrapper.getBoundingClientRect().top;
-		//
-		document.addEventListener('mousemove', mMove);
-		function mMove(e) {
-			// Remove transform translate with x50% and y50% to set correct element position
-			noticeWrapper.style.transform = 'none';
-			// Repeat mouse position for notice
-			noticeWrapper.style.left = e.pageX - shiftX + 'px';
-			noticeWrapper.style.top = e.pageY - shiftY + 'px';
-		}
-		// When we do 'mouseup' event above the noticeWrapper there is removing mousemove event
-		noticeWrapper.addEventListener('mouseup', function () {
-			document.removeEventListener('mousemove', mMove);
-			lsm.create(noticeObjCreating(noticeWrapper));
+		htmlNotice.addEventListener('input', function () {
+			localServiceManager.create(noticeObjCreating(noticeWrapper));
 		});
-	});
-	function noticeObjCreating(elem) {
-		// Return object with css fields to send it to localStorage
-		return {
-			left: elem.style.left,
-			top: elem.style.top,
-			zIndex: elem.style.zIndex,
-			value: elem.querySelector('.notice').value,
-			elemId: elem.getAttribute('data-id'),
-		};
+
+		noticeWrapper.addEventListener('mousedown', function (e) {
+			desktop.resetNoticesStyle();
+			noticeWrapper.style.zIndex = 10;
+			noticeWrapper.querySelector('.notice').style.borderWidth = '3px';
+
+			const shiftX = e.clientX - noticeWrapper.getBoundingClientRect().left;
+			const shiftY = e.clientY - noticeWrapper.getBoundingClientRect().top;
+			document.addEventListener('mousemove', mMove);
+			function mMove(e) {
+				noticeWrapper.style.transform = 'none';
+				noticeWrapper.style.left = e.pageX - shiftX + 'px';
+				noticeWrapper.style.top = e.pageY - shiftY + 'px';
+			}
+			noticeWrapper.addEventListener('mouseup', function () {
+				document.removeEventListener('mousemove', mMove);
+				localServiceManager.create(noticeObjCreating(noticeWrapper));
+			});
+		});
+
+		function noticeObjCreating(elem) {
+			return {
+				left: elem.style.left,
+				top: elem.style.top,
+				zIndex: elem.style.zIndex,
+				value: elem.querySelector('.notice').value,
+				elemId: elem.querySelector('.notice').getAttribute('data-id'),
+			};
+		}
+		return noticeWrapper;
 	}
 }
-
-function addElemEventInitialization(sel) {
-	const elem = document.querySelector(sel);
-	elem.addEventListener('click', function () {
-		dsk.resetNoticesStyle();
-		const notice = new Notice('', Date.now());
-		creatingNoticeElement(notice);
-	});
-}
-
-const dsk = new Desktop();
-const lsm = new LocalStorageManager();
-readNoticesFromLocal();
-addElemEventInitialization('.addNotice');
+const localServiceManager = new LocalStorageManager();
+const noticeManger = new Notice();
+const desktop = new Desktop(localServiceManager.read());
+desktop.init();
