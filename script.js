@@ -8,9 +8,7 @@ class LocalStorageManager {
 			localStorage.getItem(`${this.#localStorageKey}`) ?? '[]';
 
 		const noDuplicateObjects = JSON.parse(noticeFromLocal).filter(item => {
-			if (
-				Number.parseInt(item.elemId) != Number.parseInt(noticeDataObj.elemId)
-			) {
+			if (item.elemId !== noticeDataObj.elemId) {
 				item.zIndex = 'auto';
 				return item;
 			}
@@ -35,11 +33,7 @@ class LocalStorageManager {
 			localStorage.getItem(`${this.#localStorageKey}`) ?? '[]';
 		const arrayNoticeWithoutDeleted = JSON.parse(noticeFromLocal).filter(
 			item => {
-				if (
-					Number.parseInt(item.elemId) != Number.parseInt(noticeDataObj.elemId)
-				) {
-					return item;
-				}
+				return item.elemId !== noticeDataObj.elemId;
 			}
 		);
 
@@ -121,9 +115,7 @@ class Desktop {
 	removeNotice(elemId) {
 		this.#arrayWrapAndNoteInformation =
 			this.#arrayWrapAndNoteInformation.filter(elem => {
-				if (elem.getAttribute('data-id') != elemId) {
-					return elem;
-				}
+				return elem.getAttribute('data-id') !== elemId;
 			});
 	}
 	init() {
@@ -133,68 +125,12 @@ class Desktop {
 					localStorageObj.value,
 					localStorageObj.elemId
 				);
-
-				const htmlNotice = document.createElement('textarea');
-				htmlNotice.className = `notice ${noticeDescr.className}`.trim();
-				htmlNotice.value = noticeDescr.text;
-				htmlNotice.style.border = noticeDescr.border;
-				htmlNotice.setAttribute('data-id', noticeDescr.timeCreating);
-				function getDelButton() {
-					const delButton = document.createElement('button');
-					delButton.classList.add('delBtn');
-					delButton.textContent = 'Удалить';
-					return delButton;
-				}
-
-				const noticeWrapper = document.createElement('div'),
-					delButton = getDelButton();
-
-				noticeWrapper.classList.add('noticeWrapper');
-				noticeWrapper.style.position = 'absolute';
-				noticeWrapper.style.left = localStorageObj.left;
-				noticeWrapper.style.top = localStorageObj.top;
-				noticeWrapper.style.zIndex = localStorageObj.zIndex;
-				noticeWrapper.append(htmlNotice);
-				noticeWrapper.append(delButton);
-				desktop.resetNoticesStyle(htmlNotice);
-				document.body.append(noticeWrapper);
-
-				htmlNotice.addEventListener('click', function (e) {
-					desktop.resetNoticesStyle();
-					noticeWrapper.style.zIndex = 10;
-					e.target.style.borderWidth = '3px';
-				});
-
-				htmlNotice.focus();
-				noticeWrapper.addEventListener('click', function (e) {
-					const target = e.target;
-					if (target.classList == 'delBtn') {
-						noticeWrapper.remove();
-						localServiceManager.delete(noticeObjCreating(noticeWrapper));
-						desktop.removeNotice(htmlNotice?.timeCreating);
-					}
-				});
-				htmlNotice.addEventListener('input', function () {
-					localServiceManager.create(noticeObjCreating(noticeWrapper));
-				});
-
-				noticeWrapper.addEventListener('mousedown', function (e) {
-					desktop.resetNoticesStyle();
-					noticeWrapper.style.zIndex = 10;
-					noticeWrapper.querySelector('.notice').style.borderWidth = '3px';
-					const shiftX = e.clientX - noticeWrapper.getBoundingClientRect().left;
-					const shiftY = e.clientY - noticeWrapper.getBoundingClientRect().top;
-					document.addEventListener('mousemove', mMove);
-					function mMove(e) {
-						noticeWrapper.style.transform = 'none';
-						noticeWrapper.style.left = e.pageX - shiftX + 'px';
-						noticeWrapper.style.top = e.pageY - shiftY + 'px';
-					}
-					noticeWrapper.addEventListener('mouseup', function () {
-						document.removeEventListener('mousemove', mMove);
-						localServiceManager.create(noticeObjCreating(noticeWrapper));
-					});
-				});
+				desktop.createNotice(
+					noticeDescr,
+					localStorageObj.left,
+					localStorageObj.top,
+					localStorage.zIndex
+				);
 			});
 		}
 		const elem = document.querySelector('.addNotice');
