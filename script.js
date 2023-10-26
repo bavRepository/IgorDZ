@@ -46,7 +46,6 @@ class LocalStorageManager {
 
 class Notice {
 	#text;
-	#border = '3px solid black';
 	#timeCreating;
 	#customClassName;
 
@@ -56,36 +55,24 @@ class Notice {
 		this.customClassName = customClassName;
 	}
 
-	createAndGetNotice() {}
-	set timeCreating(value) {
-		this.#timeCreating = timeCreating;
+	getHtmlElem() {
+		const htmlNotice = document.createElement('textarea');
+		htmlNotice.value = this.#text;
+		htmlNotice.style.border = '3px solid black';
+		htmlNotice.className = `notice ${this.customClassName ?? ''}`;
+		htmlNotice.setAttribute('data-id', this.#timeCreating);
+		return htmlNotice;
 	}
-
-	get timeCreating() {
-		return this.#timeCreating;
-	}
-
-	set customClassName(value) {
-		this.#customClassName = value;
-	}
-
-	get customClassName() {
-		return this.#customClassName;
-	}
-
-	set border(value) {
-		this.#border = value;
-	}
-
-	get border() {
-		return this.#border;
-	}
-
 	set text(value) {
 		this.#text = value;
 	}
-	get text() {
-		return this.#text;
+
+	getInfo() {
+		return {
+			className: this.#customClassName,
+			timeCreating: this.#timeCreating,
+			text: this.#text,
+		};
 	}
 }
 
@@ -121,12 +108,12 @@ class Desktop {
 	init() {
 		if (this.#arrayWrapAndNoteInformation.length > 0) {
 			this.#arrayWrapAndNoteInformation.forEach(localStorageObj => {
-				const noticeDescr = new Notice(
+				const notice = new Notice(
 					localStorageObj.value,
 					localStorageObj.elemId
 				);
 				desktop.createNotice(
-					noticeDescr,
+					notice.getHtmlElem(),
 					localStorageObj.left,
 					localStorageObj.top,
 					localStorage.zIndex
@@ -135,8 +122,8 @@ class Desktop {
 		}
 		const elem = document.querySelector('.addNotice');
 		elem.addEventListener('click', function () {
-			const noticeDescr = new Notice();
-			desktop.createNotice(noticeDescr);
+			const notice = new Notice();
+			desktop.createNotice(notice.getHtmlElem());
 		});
 		function noticeObjCreating(elem) {
 			return {
@@ -149,7 +136,7 @@ class Desktop {
 		}
 	}
 	createNotice(
-		noticeDescr,
+		noticeElem,
 		wrapperLeft = '40%',
 		wrapperTop = '40%',
 		wrapperZIndex = 'auto'
@@ -161,12 +148,6 @@ class Desktop {
 			return delButton;
 		}
 
-		const htmlNotice = document.createElement('textarea');
-		htmlNotice.className = `notice ${noticeDescr.className}`;
-		htmlNotice.value = noticeDescr.text;
-		htmlNotice.style.border = noticeDescr.border;
-		htmlNotice.setAttribute('data-id', noticeDescr.timeCreating);
-
 		const noticeWrapper = document.createElement('div'),
 			delButton = getDelButton();
 
@@ -174,25 +155,26 @@ class Desktop {
 		noticeWrapper.style.position = 'absolute';
 		noticeWrapper.style.left = wrapperLeft;
 		noticeWrapper.style.top = wrapperTop;
-		noticeWrapper.append(htmlNotice);
+		noticeWrapper.append(noticeElem);
 		noticeWrapper.append(delButton);
 		this.#arrayWrapAndNoteInformation.push(noticeObjCreating(noticeWrapper));
 		noticeWrapper.style.zIndex = wrapperZIndex;
 		desktop.resetNoticesStyle();
 		document.body.append(noticeWrapper);
+
 		localServiceManager.create(noticeObjCreating(noticeWrapper));
 
-		htmlNotice.focus();
+		noticeElem.focus();
 
 		noticeWrapper.addEventListener('click', function (e) {
 			const target = e.target;
 			if (target.classList == 'delBtn') {
 				noticeWrapper.remove();
 				localServiceManager.delete(noticeObjCreating(noticeWrapper));
-				desktop.removeNotice(noticeDescr?.timeCreating);
+				desktop.removeNotice(noticeElem?.getInfo.timeCreating);
 			}
 		});
-		htmlNotice.addEventListener('input', function () {
+		noticeElem.addEventListener('input', function () {
 			localServiceManager.create(noticeObjCreating(noticeWrapper));
 		});
 
@@ -228,6 +210,5 @@ class Desktop {
 	}
 }
 const localServiceManager = new LocalStorageManager();
-const noticeManger = new Notice();
 const desktop = new Desktop(localServiceManager.read());
 desktop.init();
