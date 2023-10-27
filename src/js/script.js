@@ -1,5 +1,8 @@
 'use strict';
 
+import '../index.html';
+import '../styles/style.scss';
+
 class LocalStorageManager {
 	#localStorageKey = 'notice';
 
@@ -90,6 +93,16 @@ class Desktop {
 		this.#arrayWrapAndNoteInformation = WrapNoticeArray;
 	}
 
+	getNoticeElemInfo() {
+		return {
+			left: elem.style.left,
+			top: elem.style.top,
+			zIndex: elem.style.zIndex,
+			value: elem.querySelector('.notice').value,
+			elemId: elem.querySelector('.notice').getAttribute('data-id'),
+		};
+	}
+
 	addNotice(elem) {
 		this.#arrayWrapAndNoteInformation.push(elem);
 	}
@@ -125,15 +138,6 @@ class Desktop {
 			const notice = new Notice();
 			desktop.createNotice(notice.getHtmlElem());
 		});
-		function noticeObjCreating(elem) {
-			return {
-				left: elem.style.left,
-				top: elem.style.top,
-				zIndex: elem.style.zIndex,
-				value: elem.querySelector('.notice').value,
-				elemId: elem.querySelector('.notice').getAttribute('data-id'),
-			};
-		}
 	}
 	createNotice(
 		noticeElem,
