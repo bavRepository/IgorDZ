@@ -1,0 +1,47 @@
+{
+  "name": "fit.local",
+  "version": "1.0.0",
+  "description": "",
+  "main": "webpack.config.js",
+  "scripts": {
+    "onlyServerStart": "webpack serve",
+    "start+DEV": "set NODE_ENV=development&&webpack serve",
+    "dev": "set NODE_ENV=development&&webpack",
+    "prod": "set NODE_ENV=production&&webpack",
+    "clear": "rd /s /q dist",
+    "json-s": "json-server --watch ./src/db.json"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.22.5",
+    "@babel/preset-env": "^7.22.5",
+    "babel-loader": "^9.1.2",
+    "css-loader": "^6.8.1",
+    "file-loader": "^6.2.0",
+    "html-loader": "^4.2.0",
+    "html-webpack-plugin": "^5.5.1",
+    "image-webpack-loader": "^8.1.0",
+    "mini-css-extract-plugin": "^2.7.6",
+    "postcss": "^8.4.24",
+    "postcss-loader": "^7.3.2",
+    "postcss-preset-env": "^8.4.2",
+    "sass": "^1.63.3",
+    "sass-loader": "^13.3.1",
+    "style-loader": "^3.3.3",
+    "webpack": "^5.86.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.0",
+    "webpack-server": "^0.1.2"
+  },
+  "dependencies": {
+    "@babel/polyfill": "^7.12.1",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^8.43.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-import": "^2.27.5",
+    "json-server": "^0.17.4"
+  }
+}
