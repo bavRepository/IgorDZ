@@ -7,21 +7,21 @@ class LocalStorageManager {
 	#localStorageKey = 'notice';
 
 	create(noticeDataObj) {
-		const noticeFromLocal =
-			localStorage.getItem(`${this.#localStorageKey}`) ?? '[]';
+		// const noticeFromLocal =
+		// 	localStorage.getItem(`${this.#localStorageKey}`) ?? '[]';
 
-		const noDuplicateObjects = JSON.parse(noticeFromLocal).filter(item => {
-			if (item.elemId !== noticeDataObj.elemId) {
-				item.zIndex = 'auto';
-				return item;
-			}
-		});
+		// const noDuplicateObjects = JSON.parse(noticeFromLocal).filter(item => {
+		// 	if (item.elemId !== noticeDataObj.elemId) {
+		// 		item.zIndex = 'auto';
+		// 		return item;
+		// 	}
+		// });
 
-		noDuplicateObjects.push(noticeDataObj);
+		// noDuplicateObjects.push(noticeDataObj);
 
 		localStorage.setItem(
 			`${this.#localStorageKey}`,
-			JSON.stringify(noDuplicateObjects)
+			JSON.stringify(noticeDataObj)
 		);
 	}
 	read() {
@@ -33,30 +33,33 @@ class LocalStorageManager {
 
 	delete(noticeDataObj) {
 		localStorage.removeItem(this.#localStorageKey);
-
+		const newDataToLocal = noticeDataObj ?? '[]';
 		localStorage.setItem(
 			`${this.#localStorageKey}`,
-			JSON.stringify(noticeDataObj)
+			JSON.stringify(newDataToLocal)
 		);
 	}
 }
 
 class NoticeManager {
 	#text;
-	#customClassName;
 
-	constructor(text = '', customClassName = '') {
+	constructor(text = '') {
 		this.#text = text;
-		this.customClassName = customClassName;
 	}
 
-	createAndGetHtmlElem(text = this.#text, eventFn,timeCreating = Date.now(), customClassName = this.#customClassName) {
+	createAndGetHtmlElem(text = this.#text, timeCreating = Date.now(), ...classes) {
 		const htmlNotice = document.createElement('textarea');
 		htmlNotice.value = text;
 		htmlNotice.style.border = '3px solid black';
-		htmlNotice.className = `notice ${customClassName}`;
 		htmlNotice.setAttribute('data-id', timeCreating);
-		
+		if (classes.length === 0) {
+			htmlNotice.classList.add('notice');
+	} else {
+			classes.forEach(item => {
+				htmlNotice.classList.add(item);
+			});
+	}
 		return htmlNotice;
 	}
 
@@ -70,14 +73,19 @@ class NoticeManager {
 }
 
 class Desktop {
+	#currentNoticeAndDragAbleElemData;
 	#storageService;
 	#noticeService;
-	#arrayWrapAndNoteInformation;
+	#arrayWrapAndNoteInformation = [];
 	constructor(serviceObj) {
 		this.#storageService = serviceObj.storageService;
 		this.#noticeService = serviceObj.noticeService;
 	}
 
+	// get currentNoticeAndDragAbleElemData(){
+	// 	return this.#currentNoticeAndDragAbleElemData;
+	// }
+	
 	get storageService(){
 		return this.#storageService;
 	}
@@ -86,12 +94,18 @@ class Desktop {
 		return this.#noticeService;
 	}
 
-	get arrayWrapAndNoteInformation() {
-		return this.#arrayWrapAndNoteInformation;
-	}
+	// get arrayWrapAndNoteInformation() {
+	// 	return this.#arrayWrapAndNoteInformation;
+	// }
 
-	set arrayWrapAndNoteInformation(WrapNoticeArray) {
-		this.#arrayWrapAndNoteInformation = WrapNoticeArray;
+	pushNewNoticeDate(newObjData) {
+		this.#arrayWrapAndNoteInformation = this.#arrayWrapAndNoteInformation.filter((el) => {
+			if (newObjData.elemId !== el.elemId) {
+				el.zIndex = 'auto'
+				return el;
+			}
+		});
+		this.#arrayWrapAndNoteInformation.push(newObjData);
 	}
 
 	getElemInfo(splittedObjects) {
@@ -101,23 +115,25 @@ class Desktop {
 			zIndex: splittedObjects.dragAbleUnderNoticeElem.style.zIndex,
 			value: splittedObjects.noticeElem.value,
 			elemId: splittedObjects.noticeElem.getAttribute('data-id'),
+			border: splittedObjects.noticeElem.style.border,
 		};
 	}
 
-	addNotice(elem) {
-		this.#arrayWrapAndNoteInformation.push(elem);
-	}
+
 	resetNoticesStyle() {
-		document.querySelectorAll('.wrapperNotice').forEach(elem => {
-			elem.style.zIndex = 'auto';
-			elem.querySelector('.notice').style.borderWidth = '1px';
+		this.#arrayWrapAndNoteInformation.forEach((el) => {
+			el.zIndex = 'auto';
+			el.border = '1px';
 		});
 	}
 	removeNotice(elemId) {
-		return this.#arrayWrapAndNoteInformation.filter(elem => {
-			return elem.elemId !== elemId;
+		this.#arrayWrapAndNoteInformation = this.#arrayWrapAndNoteInformation.filter(elem => {
+			return elem.elemId != elemId;
 		});
+		this.#arrayWrapAndNoteInformation;
 	}
+
+
 
 	init() {
 		this.#arrayWrapAndNoteInformation = this.#storageService.read();
@@ -125,7 +141,7 @@ class Desktop {
 			this.#arrayWrapAndNoteInformation.forEach(localStorageObj => {
 				const noticeElem = this.#noticeService.createAndGetHtmlElem(localStorageObj.value, localStorageObj.elemId);
 
-				desktop.createDragAbleElemWithNotice(
+				this.createDragAbleElemWithNotice(
 					noticeElem,
 					localStorageObj.left,
 					localStorageObj.top,
@@ -134,57 +150,107 @@ class Desktop {
 			});
 		}
 		const elem = document.querySelector('.addNotice');
-		elem.addEventListener('click', function () {
-			const noticeElem = new NoticeManager().createAndGetHtmlElem();
-			desktop.createDragAbleElemWithNotice(noticeElem);
+
+		elem.addEventListener('click', () => {
+			this.createDragAbleElemWithNotice(this.#noticeService.createAndGetHtmlElem());
 		});
 	}
+
+   getDelButton() {
+		const delButton = document.createElement('button');
+		delButton.classList.add('delBtn');
+		delButton.textContent = 'Удалить';
+		return delButton;
+	}
+
 	createDragAbleElemWithNotice(
 		noticeElem,
 		wrapperLeft = '40%',
 		wrapperTop = '40%',
 		wrapperZIndex = 'auto'
 	) {
-		function getDelButton() {
-			const delButton = document.createElement('button');
-			delButton.classList.add('delBtn');
-			delButton.textContent = 'Удалить';
-			return delButton;
-		}
 
-		const dragAbleUnderNoticeElem = document.createElement('div'),
-			delButton = getDelButton();
+	 this.#currentNoticeAndDragAbleElemData = {
+			left: wrapperLeft,
+			top: wrapperTop,
+			zIndex: wrapperZIndex,
+			value: noticeElem.value,
+			elemId: noticeElem.getAttribute('data-id'),
+			border: noticeElem.style.border,
+		};
+	
 
+		if (this.#arrayWrapAndNoteInformation.length > 0){
+		this.#arrayWrapAndNoteInformation.forEach(item => {
+			document.querySelector(`div[data-id=${item.elemId}]`).remove();
+		});
+	}
+
+	this.pushNewNoticeDate(this.#currentNoticeAndDragAbleElemData);
+	let dragAbleUnderNoticeElem,
+      delButton;
+		this.#arrayWrapAndNoteInformation.forEach(item => {
+			dragAbleUnderNoticeElem = document.createElement('div'),
+			delButton = desktop.getDelButton();
+    
 		dragAbleUnderNoticeElem.classList.add('wrapperNotice');
 		dragAbleUnderNoticeElem.style.position = 'absolute';
-		dragAbleUnderNoticeElem.style.left = wrapperLeft;
-		dragAbleUnderNoticeElem.style.top = wrapperTop;
+		dragAbleUnderNoticeElem.style.left = item.left;
+		dragAbleUnderNoticeElem.style.top = item.top;
+		dragAbleUnderNoticeElem.style.zIndex = item.zIndex;
+		dragAbleUnderNoticeElem.setAttribute('data-id', item.elemId);
 		dragAbleUnderNoticeElem.append(noticeElem);
 		dragAbleUnderNoticeElem.append(delButton);
-		const splittedObjects = {'dragAbleUnderNoticeElem' : dragAbleUnderNoticeElem, 'noticeElem': noticeElem};
-		this.#arrayWrapAndNoteInformation.push(desktop.getElemInfo(splittedObjects));
-		dragAbleUnderNoticeElem.style.zIndex = wrapperZIndex;
-		desktop.resetNoticesStyle();
+	
+		
+		// desktop.pushNewNoticeDate(desktop.getElemInfo(splittedObjects));
+	
+		// desktop.resetNoticesStyle();
 		document.body.append(dragAbleUnderNoticeElem);
-
-		this.#storageService.create(desktop.getElemInfo(splittedObjects));
+	
 
 		noticeElem.focus();
+		});
+
+		this.#storageService.create(this.#arrayWrapAndNoteInformation);
+
+		// console.log(this.#currentNoticeAndDragAbleElemData.left + " smptrim v koren");
+	
+
+		// const dragAbleUnderNoticeElem = document.createElement('div'),
+		// 	delButton = desktop.getDelButton();
+    
+		// dragAbleUnderNoticeElem.classList.add('wrapperNotice');
+		// dragAbleUnderNoticeElem.style.position = 'absolute';
+		// dragAbleUnderNoticeElem.style.left = this.#arrayWrapAndNoteInformation.left;
+		// dragAbleUnderNoticeElem.style.top = this.#arrayWrapAndNoteInformation.top;
+		// dragAbleUnderNoticeElem.style.zIndex = this.#arrayWrapAndNoteInformation.zIndex;
+		// dragAbleUnderNoticeElem.append(noticeElem);
+		// dragAbleUnderNoticeElem.append(delButton);
+	
+		
+		// desktop.pushNewNoticeDate(desktop.getElemInfo(splittedObjects));
+	
+		// desktop.resetNoticesStyle();
+		// document.body.append(dragAbleUnderNoticeElem);
+		// this.#storageService.create(this.#arrayWrapAndNoteInformation);
+
+		// noticeElem.focus();
 
 		dragAbleUnderNoticeElem.addEventListener('click', function (e) {
 			const target = e.target;
 			if (target.classList == 'delBtn') {
 				document.querySelectorAll('.wrapperNotice').forEach(el => el.remove());
 				const listWithoutRemoveElement = desktop.removeNotice(noticeElem.getAttribute('data-id'));
-				new LocalStorageManager().delete(listWithoutRemoveElement);
-				
+				desktop.#storageService.delete(listWithoutRemoveElement);
+				desktop.init();
 			}
 		});
 
-		this.#noticeService.addListener(noticeElem, () => inputNoticeEvent(splittedObjects));
+		this.#noticeService.addListener(noticeElem, () => inputNoticeEvent(this.#arrayWrapAndNoteInformation));
 
-		function inputNoticeEvent(splittedObjects){
-			desktop.storageService.create(desktop.getElemInfo(splittedObjects));
+		function inputNoticeEvent(noticeArray){
+			desktop.storageService.create(noticeArray);
 		}
 
 		dragAbleUnderNoticeElem.addEventListener('mousedown', function (e) {
@@ -202,7 +268,7 @@ class Desktop {
 			}
 			dragAbleUnderNoticeElem.addEventListener('mouseup', function () {
 				document.removeEventListener('mousemove', mMove);
-				localServiceManager.create(desktop.getElemInfo(splittedObjects));
+				localServiceManager.create(desktop.#arrayWrapAndNoteInformation);
 			});
 		});
 	}
