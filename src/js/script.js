@@ -135,9 +135,9 @@ class Desktop {
 		}
 		});
 
-		this.#arrayWrapAndNoteInformation.forEach(item => {
-			console.log(item); 
-	});
+	// 	this.#arrayWrapAndNoteInformation.forEach(item => {
+	// 		console.log(item); 
+	// });
 
 		fixStyleDataObj.zIndex = '10';
 		fixStyleDataObj.border = '3px';
@@ -278,19 +278,16 @@ class Desktop {
 			const shiftX = e.clientX - dragAbleUnderNoticeElem.getBoundingClientRect().left;
 			const shiftY = e.clientY - dragAbleUnderNoticeElem.getBoundingClientRect().top;
 
-			document.addEventListener('mousemove', (e) => mMove(this.#arrayWrapAndNoteInformation));
-			function mMove(arrWrapAndNote) {
-					arrWrapAndNote.forEach(item => {
-					if (noticeElem.getAttribute('data-id') === item.elemId) {
-						console.log("da est' je suka " + e.pageX);
-						item.left = e.pageX - shiftX + 'px';
-						item.top = e.pageY - shiftY + 'px';
+			document.addEventListener('mousemove', (e) => mMove(this.#arrayWrapAndNoteInformation, e));
+			function mMove(arrWrapAndNote, e) {
+				arrWrapAndNote[arrWrapAndNote.length - 1].left = e.pageX - shiftX + 'px';
+				arrWrapAndNote[arrWrapAndNote.length - 1].top = e.pageY - shiftY + 'px';
 
-						dragAbleUnderNoticeElem.style.left = item.left;
-						dragAbleUnderNoticeElem.style.top = e.pageY - item.top;
-					}
+						dragAbleUnderNoticeElem.style.left = arrWrapAndNote[arrWrapAndNote.length - 1].left;
+						dragAbleUnderNoticeElem.style.top = arrWrapAndNote[arrWrapAndNote.length - 1].top;
+						desktop.storageService.create(arrWrapAndNote);
 					
-			});
+			
 				
 				// desktop.#currentNoticeAndDragAbleElemData.left = 
 				// desktop.#currentNoticeAndDragAbleElemData.right = 
@@ -298,7 +295,7 @@ class Desktop {
 				
 			}
 			dragAbleUnderNoticeElem.addEventListener('mouseup', function () {
-				desktop.storageService.create(desktop.#arrayWrapAndNoteInformation);
+				
 				document.removeEventListener('mousemove', mMove);
 				localServiceManager.create(desktop.#arrayWrapAndNoteInformation);
 			});
