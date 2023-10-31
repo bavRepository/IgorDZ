@@ -7,6 +7,7 @@ class LocalStorageManager {
 	#localStorageKey = 'notice';
 
 	create(noticeDataObj) {
+		// console.log("perviy vtoroi");
 		// const noticeFromLocal =
 		// 	localStorage.getItem(`${this.#localStorageKey}`) ?? '[]';
 
@@ -32,11 +33,16 @@ class LocalStorageManager {
 	update(noticeDataObj) {}
 
 	delete(noticeDataObj) {
-		localStorage.removeItem(this.#localStorageKey);
-		const newDataToLocal = noticeDataObj ?? '[]';
-		localStorage.setItem(
+		const noticeFromLocal =
+		localStorage.getItem(`${this.#localStorageKey}`) ?? '[]';
+
+	const withoutDeleted = JSON.parse(noticeFromLocal).filter(item => {
+		return noticeDataObj.elemId !== item.elemId;
+	});
+
+	localStorage.setItem(
 			`${this.#localStorageKey}`,
-			JSON.stringify(newDataToLocal)
+			JSON.stringify(withoutDeleted)
 		);
 	}
 }
@@ -98,7 +104,7 @@ class Desktop {
 	// 	return this.#arrayWrapAndNoteInformation;
 	// }
 
-	pushNewNoticeDate(newObjData) {
+	pushNewNoticeDate(newObjData) { 
 		this.#arrayWrapAndNoteInformation = this.#arrayWrapAndNoteInformation.filter((el) => {
 			if (newObjData.elemId !== el.elemId) {
 				el.zIndex = 'auto'
@@ -120,35 +126,73 @@ class Desktop {
 	}
 
 
-	resetNoticesStyle() {
-		this.#arrayWrapAndNoteInformation.forEach((el) => {
-			el.zIndex = 'auto';
-			el.border = '1px';
+	resetNoticesStyle(fixStyleDataObj) {
+		this.#arrayWrapAndNoteInformation = this.#arrayWrapAndNoteInformation.filter(oldElem => {
+		if (oldElem.elemId != fixStyleDataObj.elemId) {
+			oldElem.zIndex = 'auto';
+			oldElem.border = '1px';
+			return oldElem;
+		}
 		});
+
+		this.#arrayWrapAndNoteInformation.forEach(item => {
+			console.log(item); 
+	});
+
+		fixStyleDataObj.zIndex = '10';
+		fixStyleDataObj.border = '3px';
+		this.#arrayWrapAndNoteInformation.push(fixStyleDataObj);
+		document.querySelectorAll('.wrapperNotice').forEach(item => {
+			item.remove();
+	});
+	this.init();
+		// const fixedStyleHtmlElem = document.querySelector(`div[data-id="${fixStyleDataObj.elemId}"]`);
+
+		// fixedStyleHtmlElem.style.zIndex = 10;
+		// fixedStyleHtmlElem.querySelector('.notice').style.borderWidth = '3px';
 	}
-	removeNotice(elemId) {
-		this.#arrayWrapAndNoteInformation = this.#arrayWrapAndNoteInformation.filter(elem => {
-			return elem.elemId != elemId;
+
+
+	removeNotice(deletedElem) {
+		this.#arrayWrapAndNoteInformation = this.#arrayWrapAndNoteInformation.filter(oldElem => {
+			return oldElem.elemId != deletedElem.elemId;
 		});
-		this.#arrayWrapAndNoteInformation;
-	}
+		document.querySelectorAll('.wrapperNotice').forEach(item => {
+			item.remove();
+	});
+	this.#storageService.delete(deletedElem);
+	this.init();
+
+}
+
+// 	this.#arrayWrapAndNoteInformation.forEach(item => {
+//     const noticeInfoFromDataArray = this.#noticeService.createAndGetHtmlElem(item.text, item.timeCreating);
+// 		  this.createDragAbleElemWithNotice(noticeElem)
+// });
+
+// 	noticeElem,
+// 		wrapperLeft = '40%',
+// 		wrapperTop = '40%',
+// 		wrapperZIndex = 'auto'
+// 	}
 
 
 
 	init() {
 		this.#arrayWrapAndNoteInformation = this.#storageService.read();
 		if (this.#arrayWrapAndNoteInformation.length > 0) {
-			this.#arrayWrapAndNoteInformation.forEach(localStorageObj => {
-				const noticeElem = this.#noticeService.createAndGetHtmlElem(localStorageObj.value, localStorageObj.elemId);
+			this.#arrayWrapAndNoteInformation.forEach(objDataFromLocal => {
+				const noticeElem = this.#noticeService.createAndGetHtmlElem(objDataFromLocal.value, objDataFromLocal.elemId);
 
 				this.createDragAbleElemWithNotice(
 					noticeElem,
-					localStorageObj.left,
-					localStorageObj.top,
-					localStorage.zIndex
+					objDataFromLocal.left,
+					objDataFromLocal.top,
+					objDataFromLocal.zIndex
 				);
 			});
 		}
+
 		const elem = document.querySelector('.addNotice');
 
 		elem.addEventListener('click', () => {
@@ -178,95 +222,83 @@ class Desktop {
 			elemId: noticeElem.getAttribute('data-id'),
 			border: noticeElem.style.border,
 		};
-	
+		
 
-		if (this.#arrayWrapAndNoteInformation.length > 0){
-		this.#arrayWrapAndNoteInformation.forEach(item => {
-			document.querySelector(`div[data-id=${item.elemId}]`).remove();
-		});
-	}
+
 
 	this.pushNewNoticeDate(this.#currentNoticeAndDragAbleElemData);
 	let dragAbleUnderNoticeElem,
       delButton;
-		this.#arrayWrapAndNoteInformation.forEach(item => {
+		// this.#arrayWrapAndNoteInformation.forEach(item => {
 			dragAbleUnderNoticeElem = document.createElement('div'),
 			delButton = desktop.getDelButton();
     
 		dragAbleUnderNoticeElem.classList.add('wrapperNotice');
 		dragAbleUnderNoticeElem.style.position = 'absolute';
-		dragAbleUnderNoticeElem.style.left = item.left;
-		dragAbleUnderNoticeElem.style.top = item.top;
-		dragAbleUnderNoticeElem.style.zIndex = item.zIndex;
-		dragAbleUnderNoticeElem.setAttribute('data-id', item.elemId);
+		dragAbleUnderNoticeElem.style.left = this.#currentNoticeAndDragAbleElemData.left;
+		dragAbleUnderNoticeElem.style.top = this.#currentNoticeAndDragAbleElemData.top;
+		dragAbleUnderNoticeElem.style.zIndex = this.#currentNoticeAndDragAbleElemData.zIndex;
+		// dragAbleUnderNoticeElem.setAttribute('data-id', this.#currentNoticeAndDragAbleElemData.elemId);
 		dragAbleUnderNoticeElem.append(noticeElem);
 		dragAbleUnderNoticeElem.append(delButton);
-	
+		document.body.append(dragAbleUnderNoticeElem);
 		
 		// desktop.pushNewNoticeDate(desktop.getElemInfo(splittedObjects));
 	
 		// desktop.resetNoticesStyle();
-		document.body.append(dragAbleUnderNoticeElem);
+
 	
 
 		noticeElem.focus();
-		});
+		// });
 
 		this.#storageService.create(this.#arrayWrapAndNoteInformation);
 
-		// console.log(this.#currentNoticeAndDragAbleElemData.left + " smptrim v koren");
-	
-
-		// const dragAbleUnderNoticeElem = document.createElement('div'),
-		// 	delButton = desktop.getDelButton();
-    
-		// dragAbleUnderNoticeElem.classList.add('wrapperNotice');
-		// dragAbleUnderNoticeElem.style.position = 'absolute';
-		// dragAbleUnderNoticeElem.style.left = this.#arrayWrapAndNoteInformation.left;
-		// dragAbleUnderNoticeElem.style.top = this.#arrayWrapAndNoteInformation.top;
-		// dragAbleUnderNoticeElem.style.zIndex = this.#arrayWrapAndNoteInformation.zIndex;
-		// dragAbleUnderNoticeElem.append(noticeElem);
-		// dragAbleUnderNoticeElem.append(delButton);
-	
-		
-		// desktop.pushNewNoticeDate(desktop.getElemInfo(splittedObjects));
-	
-		// desktop.resetNoticesStyle();
-		// document.body.append(dragAbleUnderNoticeElem);
-		// this.#storageService.create(this.#arrayWrapAndNoteInformation);
-
-		// noticeElem.focus();
-
-		dragAbleUnderNoticeElem.addEventListener('click', function (e) {
+		dragAbleUnderNoticeElem.addEventListener('click', (e) => {
 			const target = e.target;
 			if (target.classList == 'delBtn') {
-				document.querySelectorAll('.wrapperNotice').forEach(el => el.remove());
-				const listWithoutRemoveElement = desktop.removeNotice(noticeElem.getAttribute('data-id'));
-				desktop.#storageService.delete(listWithoutRemoveElement);
-				desktop.init();
+				this.removeNotice(this.#currentNoticeAndDragAbleElemData);
 			}
 		});
 
 		this.#noticeService.addListener(noticeElem, () => inputNoticeEvent(this.#arrayWrapAndNoteInformation));
 
-		function inputNoticeEvent(noticeArray){
-			desktop.storageService.create(noticeArray);
+		function inputNoticeEvent(arrWrapAndNote){
+			arrWrapAndNote.forEach(item => {
+				if (noticeElem.getAttribute('data-id') === item.elemId) {
+					item.value = noticeElem.value;
+				}
+		});
+			desktop.storageService.create(arrWrapAndNote);
 		}
 
-		dragAbleUnderNoticeElem.addEventListener('mousedown', function (e) {
-			desktop.resetNoticesStyle();
-			dragAbleUnderNoticeElem.style.zIndex = 10;
-			dragAbleUnderNoticeElem.querySelector('.notice').style.borderWidth = '3px';
-
+		dragAbleUnderNoticeElem.addEventListener('mousedown', (e) => {
+			this.resetNoticesStyle(this.#currentNoticeAndDragAbleElemData);
+			
 			const shiftX = e.clientX - dragAbleUnderNoticeElem.getBoundingClientRect().left;
 			const shiftY = e.clientY - dragAbleUnderNoticeElem.getBoundingClientRect().top;
-			document.addEventListener('mousemove', mMove);
-			function mMove(e) {
-				dragAbleUnderNoticeElem.style.transform = 'none';
-				dragAbleUnderNoticeElem.style.left = e.pageX - shiftX + 'px';
-				dragAbleUnderNoticeElem.style.top = e.pageY - shiftY + 'px';
+
+			document.addEventListener('mousemove', (e) => mMove(this.#arrayWrapAndNoteInformation));
+			function mMove(arrWrapAndNote) {
+					arrWrapAndNote.forEach(item => {
+					if (noticeElem.getAttribute('data-id') === item.elemId) {
+						console.log("da est' je suka " + e.pageX);
+						item.left = e.pageX - shiftX + 'px';
+						item.top = e.pageY - shiftY + 'px';
+
+						dragAbleUnderNoticeElem.style.left = item.left;
+						dragAbleUnderNoticeElem.style.top = e.pageY - item.top;
+					}
+					
+			});
+				
+				// desktop.#currentNoticeAndDragAbleElemData.left = 
+				// desktop.#currentNoticeAndDragAbleElemData.right = 
+				// console.log(desktop.#currentNoticeAndDragAbleElemData.right);
+				
 			}
 			dragAbleUnderNoticeElem.addEventListener('mouseup', function () {
+				desktop.storageService.create(desktop.#arrayWrapAndNoteInformation);
 				document.removeEventListener('mousemove', mMove);
 				localServiceManager.create(desktop.#arrayWrapAndNoteInformation);
 			});
