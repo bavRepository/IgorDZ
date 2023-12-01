@@ -33,11 +33,11 @@ class LocalStorageManager {
     const noticeFromLocal =
       localStorage.getItem(`${this.#localStorageKey}`) ?? "[]";
 
-    const noDuplicateObjects = JSON.parse(noticeFromLocal).map((item) => {
-      if (item.elemId == noticeDataObj.timeCreating) {
-          item.value = noticeDataObj.value;
-          return item;
-      }else return item;
+    const noDuplicateObjects = JSON.parse(noticeFromLocal);
+    noDuplicateObjects.forEach(localNoticeObj => {
+      if (localNoticeObj.elemId == noticeDataObj.timeCreating){
+        localNoticeObj.value = noticeDataObj.value;
+      }
     });
 
     localStorage.setItem(
